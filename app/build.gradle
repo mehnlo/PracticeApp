@@ -1,0 +1,78 @@
+apply plugin: 'com.android.application'
+
+
+android {
+
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "android.example.com.practiceapp"
+        minSdkVersion 19
+        targetSdkVersion 28
+        multiDexEnabled true
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        android.defaultConfig.vectorDrawables.useSupportLibrary = true
+        resConfigs "en" , "es"
+        dataBinding.enabled true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:design:28.0.0'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    testImplementation 'junit:junit:4.12'
+
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'com.android.support:preference-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:cardview-v7:28.0.0'
+
+    // Android architecture components
+    implementation 'android.arch.paging:runtime:1.0.1'
+    implementation 'android.arch.lifecycle:runtime:1.1.1'
+    implementation 'android.arch.lifecycle:extensions:1.1.1'
+    annotationProcessor 'android.arch.lifecycle:compiler:1.1.1'
+
+    implementation 'com.google.firebase:firebase-core:16.0.8'
+    // Firebase Authentication
+    implementation 'com.google.firebase:firebase-auth:16.2.1'
+    // Firebase Firestore
+    implementation 'com.google.firebase:firebase-firestore:18.2.0'
+    // Firebase Storage
+    implementation 'com.google.firebase:firebase-storage:16.1.0'
+    // FirebaseUI
+    implementation 'com.firebaseui:firebase-ui-firestore:4.3.2'
+    implementation 'com.firebaseui:firebase-ui-auth:4.3.2'
+    // GoogleUtils Authentication
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.8.0")
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
+    implementation 'jp.wasabeef:glide-transformations:4.0.1'
+    // GPU Filters
+    implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
+    // Algolia
+    implementation 'com.algolia:algoliasearch-android:3.27.0'
+    implementation 'com.algolia:instantsearch-android:1.15.2'
+    implementation 'com.algolia:instantsearch-android-core:1.15.2'
+    // https://mvnrepository.com/artifact/org.greenrobot/eventbus
+    implementation group: 'org.greenrobot', name: 'eventbus', version: '3.1.1'
+
+    implementation 'com.android.support:multidex:1.0.3'
+
+
+}
+
+apply plugin: 'com.google.gms.google-services'

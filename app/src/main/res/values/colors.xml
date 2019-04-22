@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="colorPrimary">#388e3c</color>
+    <color name="colorPrimaryDark">#00600f</color>
+    <color name="colorAccent">#ffa000</color>
+    <color name="navy">#021430</color>
+    <color name="fragmentContent">#fff</color>
+    <color name="material_green_50">#E8F5E9</color>
+    <color name="material_green_300">#AED581</color>
+    <color name="material_green_500">#4CAF50</color>
+    <color name="material_green_700">#388E3C</color>
+    <color name="material_grey_100" tools:override="true">#F5F5F5</color>
+    <color name="material_grey_800" tools:override="true">#424242</color>
+</resources>

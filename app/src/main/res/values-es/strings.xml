@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setting_activity">Ajustes</string>
+    <string name="post_title">Titulo de foto</string>
+    <string name="action_send">Enviar</string>
+    <string name="image_result_ok">Foto subida con éxito</string>
+    <string name="image_result_cancelled">Error, la foto no se ha subido</string>
+    <string name="action_take_picture">Haz una foto</string>
+    <string name="action_profile">Perfil</string>
+    <string name="action_sign_out">Cerrar sesión</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="action_invite">Invita a un amigo</string>
+    <string name="action_gallery">Galeria</string>
+    <string name="separator_communicate">Comunicación</string>
+    <string name="picture_content">Foto tomada de la cámara</string>
+    <string name="action_remove">Borrar</string>
+    <string name="custom_layout_email_click_text">Continua con el email</string>
+    <string name="custom_layout_email_header">Usa tu email</string>
+    <string name="custom_layout_idp_header">Elige un método</string>
+    <string name="navigation_drawer_open">Abrir navegación</string>
+    <string name="navigation_drawer_close">Cerrar navegación</string>
+    <string name="pref_firebase_user_label">Sesión del usuario</string>
+    <string name="action_search">Buscar</string>
+    <string name="user_fragment_post">Publicaciones</string>
+    <string name="user_fragment_follows">Seguidos</string>
+    <string name="user_fragment_followers">Seguidores</string>
+    <string name="action_home">Inicio</string>
+    <string name="no_result_template">Ningún resultado</string>
+    <string name="search_hint">Buscar&#8230;</string>
+    <string name="user_fragment_edit_profile">Editar Perfil</string>
+    <string name="new_post">Nueva Publicación</string>
+    <string name="title_activity_edit_user">Editar Perfil</string>
+</resources>
