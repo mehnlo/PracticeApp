@@ -12,25 +12,25 @@ import java.util.Map;
 public class Photo {
 
     private static final String FIELD_TITLE = "title";
-    private static final String FIELD_PHOTO_URI = "photoUri";
+    private static final String FIELD_PHOTO_URL = "photoUrl";
     private static final String FIELD_GEO = "geo";
-    public static final String FIELD_TIMESTAMP = "timestamp";
+    public static final String FIELD_DATE = "date";
     private static final String FIELD_COMMENTS = "comments";
 
     private String title;
-    private String photoUri;
+    private String photoUrl;
     private String geo;
-    private Date timestamp;
+    private Date date;
     private Comment[] comments;
 
     public Photo() { // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public Photo(String title, String photoUri, String geo, Date timestamp, Comment[] comments) {
+    public Photo(String title, String photoUrl, String geo, Date date, Comment[] comments) {
         this.title = title;
-        this.photoUri = photoUri;
+        this.photoUrl = photoUrl;
         this.geo = geo;
-        this.timestamp = timestamp;
+        this.date = date;
         this.comments = comments;
     }
 
@@ -42,12 +42,12 @@ public class Photo {
         this.title = title;
     }
 
-    public String getPhotoUri() {
-        return photoUri;
+    public String getPhotoUrl() {
+        return photoUrl;
     }
 
-    public void setPhotoUri(String photoUri) {
-        this.photoUri = photoUri;
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 
     public String getGeo() {
@@ -58,12 +58,12 @@ public class Photo {
         this.geo = geo;
     }
 
-    public Date getTimestamp() {
-        return timestamp;
+    public Date getDate() {
+        return date;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setDate(Date date) {
+        this.date = date;
     }
 
     public Comment[] getComments() {
@@ -78,9 +78,9 @@ public class Photo {
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put(FIELD_TITLE, title);
-        result.put(FIELD_PHOTO_URI, photoUri);
+        result.put(FIELD_PHOTO_URL, photoUrl);
         result.put(FIELD_GEO, geo);
-        result.put(FIELD_TIMESTAMP, new Timestamp(new Date()));
+        result.put(FIELD_DATE, new Timestamp(new Date()));
         result.put(FIELD_COMMENTS, comments);
         return result;
     }

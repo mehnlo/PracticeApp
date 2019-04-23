@@ -47,7 +47,7 @@ public class GalleryActivity extends AppCompatActivity {
         initUser();
 
         mFirestore = FirebaseFirestore.getInstance();
-        String collectionPath = "/usuarios/" + mPost.getUser().getEmail() + "/fotos";
+        String collectionPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
         mItemsCollection = mFirestore.collection(collectionPath);
 
         setUpAdapter();
@@ -61,7 +61,7 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void setUpAdapter() {
-        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_TIMESTAMP, Query.Direction.DESCENDING);
+        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_DATE, Query.Direction.DESCENDING);
 
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)
@@ -136,11 +136,11 @@ public class GalleryActivity extends AppCompatActivity {
         SharedPreferences prefs = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
         String email = prefs.getString(getString(R.string.account_email_key), "");
         String username = prefs.getString(getString(R.string.account_name_key), "");
-        String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
+        String photoUrl = prefs.getString(getString(R.string.account_photo_key), "");
         User mUser = new User();
         mUser.setEmail(email);
         mUser.setUsername(username);
-        mUser.setPhotoUrl(photoUri);
+        mUser.setPhotoUrl(photoUrl);
         mPost.setUser(mUser);
     }
 }

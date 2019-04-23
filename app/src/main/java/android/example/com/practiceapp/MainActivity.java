@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity
                 .into(mNavHeaderiv);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String documentPath = "usuarios/" + account.getEmail();
+        String documentPath = "users/" + account.getEmail();
         DocumentReference ref = db.document(documentPath);
 
         ref.update(

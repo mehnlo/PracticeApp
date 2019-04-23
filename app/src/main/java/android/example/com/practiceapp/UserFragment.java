@@ -60,13 +60,11 @@ public class UserFragment extends Fragment {
     private RecyclerView.LayoutManager mLayoutManager;
     private FirebaseFirestore mFirestore;
     private CollectionReference mItemsCollection;
-    private DocumentReference mDocumentReference;
+    private DocumentReference mCountersRef;
     private ProgressBar mProgressBar;
     private final Post mPost = new Post();
 
-    private ListenerRegistration followers;
-    private ListenerRegistration follows;
-    private ListenerRegistration posts;
+    private ListenerRegistration counters;
 
     ImageView mProfilePic;
     TextView mProfileName;
@@ -104,10 +102,10 @@ public class UserFragment extends Fragment {
                 if (user != null) {
                     Log.d(TAG, "onChanged: the user isn't null");
                     mPost.setUser(user);
-                    String documentPath = "/usuarios/" + mPost.getUser().getEmail();
-                    mDocumentReference = mFirestore.document(documentPath);
-                    String collectionPath = "/usuarios/" + mPost.getUser().getEmail() + "/fotos";
-                    mItemsCollection = mFirestore.collection(collectionPath);
+                    String countersPath = "/counters/" + mPost.getUser().getEmail();
+                    mCountersRef = mFirestore.document(countersPath);
+                    String postsPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
+                    mItemsCollection = mFirestore.collection(postsPath);
                     setUpHeader();
                     setUpAdapter();
                     initListeners();
@@ -146,53 +144,27 @@ public class UserFragment extends Fragment {
     }
 
     private void initListeners() {
-        Query baseQuery = mDocumentReference.collection("counters");
-        posts = ((CollectionReference) baseQuery).document("posts")
-            .addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                @Override
-                public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
-                    if (e != null) {
-                        Log.w(TAG, "Listen:error", e);
-                        return;
-                    }
-                    if (snapshot.contains("count")) {
-                        mPostCount.setText(snapshot.get("count").toString());
-                    }
+        counters = mCountersRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen:error", e);
+                    return;
+                } if (snapshot.contains("posts")) {
+                    mPostCount.setText(snapshot.get("posts").toString());
+                } if (snapshot.contains("followers")) {
+                    mFollowersCount.setText(snapshot.get("followers").toString());
+                } if (snapshot.contains("follows")) {
+                    mFollowsCount.setText(snapshot.get("follows").toString());
                 }
-            });
-
-        followers = ((CollectionReference) baseQuery).document("followers")
-            .addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                @Override
-                public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
-                    if (e != null) {
-                        Log.w(TAG, "listen:error", e);
-                    }
-                    if (snapshot.contains("count")) {
-                        mFollowersCount.setText(snapshot.get("count").toString());
-                    }
-                }
-            });
-        follows = ((CollectionReference) baseQuery).document("follows")
-            .addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                @Override
-                public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
-                    if (e != null) {
-                        Log.w(TAG, "listen:error", e);
-                    }
-                    if (snapshot.contains("count")) {
-                        mFollowsCount.setText(snapshot.get("count").toString());
-                    }
-                }
-            });
+            }
+        });
     }
 
     private void stopListener() {
         // Stop listening to changes
         Log.i(TAG, "stopListener()");
-        followers.remove();
-        follows.remove();
-        posts.remove();
+        counters.remove();
     }
 
     private void setUpHeader() {
@@ -205,7 +177,7 @@ public class UserFragment extends Fragment {
         mProfileEmail.setText(mPost.getUser().getEmail());
     }
     private void setUpAdapter() {
-        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_TIMESTAMP, Query.Direction.DESCENDING);
+        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_DATE, Query.Direction.DESCENDING);
 
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)

@@ -26,11 +26,11 @@ public final class FirebaseUtils {
                 Context.MODE_PRIVATE);
         String userID = sharedPreferences.getString(context.getString(R.string.account_email_key),"");
 
-        String collectionPath = "usuarios/"+userID+"/fotos/";
-        DocumentReference photoRef = db.collection(collectionPath).document();
-        DocumentReference userRef = db.collection("usuarios").document(userID);
-        final String photoID = photoRef.getId();
-        photoRef.set(photo.toMap()).addOnSuccessListener(new OnSuccessListener<Void>() {
+        String collectionPath = "posts/" + userID + "/userPosts/";
+        DocumentReference postRef = db.collection(collectionPath).document();
+        DocumentReference counterRef = db.collection("counters").document(userID);
+        final String photoID = postRef.getId();
+        postRef.set(photo.toMap()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 Log.d(TAG, "onSuccess: Photo written with ID: " + photoID);
@@ -46,7 +46,7 @@ public final class FirebaseUtils {
                 context.startActivity(intentToStartMainActivity);
             }
         });
-        userRef.update("postCounter", FieldValue.increment(1));
+        counterRef.update("posts", FieldValue.increment(1));
 
 
     }

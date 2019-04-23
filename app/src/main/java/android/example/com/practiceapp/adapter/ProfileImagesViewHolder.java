@@ -10,8 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
-import javax.annotation.Nonnull;
-
 public class ProfileImagesViewHolder extends RecyclerView.ViewHolder {
     private static final String TAG = ProfileImagesViewHolder.class.getSimpleName();
     private ImageView mImageView;
@@ -19,10 +17,10 @@ public class ProfileImagesViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
         mImageView = itemView.findViewById(R.id.imageView);
     }
-    public void bind(@Nonnull Post item) {
+    public void bind(@NonNull Post item) {
         Uri uri;
         try {
-            uri = Uri.parse(item.getPhoto().getPhotoUri());
+            uri = Uri.parse(item.getPhoto().getPhotoUrl());
             GlideApp.with(itemView.getContext())
                     .load(uri)
                     .override(mImageView.getLayoutParams().width)

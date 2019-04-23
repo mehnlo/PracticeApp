@@ -181,19 +181,5 @@ public class SearchFragment extends Fragment {
     }
     @Subscribe
     public void onSearchEvent(SearchEvent event){ }
-//    @Override
-//    public void onUpdateView(JSONObject result) {
-//        try {
-//            String photoUri = result.getString(User.FIELD_PHOTO_URL);
-//            String displayName = result.getString(User.FIELD_DISPLAYNAME);
-//            String email = result.getString(User.FIELD_EMAIL);
-//            GlideApp.with(this)
-//                    .load(photoUri)
-//                    .into(mPictureHit);
-//            mUserNameHit.setText(displayName);
-//            mEmailHit.setText(email);
-//        } catch (JSONException e) { e.printStackTrace(); }
-//    }
-
 
 }

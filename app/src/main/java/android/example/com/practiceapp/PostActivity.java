@@ -140,8 +140,6 @@ public class PostActivity extends AppCompatActivity {
 
     private void uploadPhoto(){
         // Create a storage reference from our app
-        // /usuarios/${user.email}/perfil/imagen1.jpg
-        // /usuarios/${user.email}/post/imagen1.jpg
         SharedPreferences sharedPreferences = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
         String userEmail = sharedPreferences.getString(getString(R.string.account_email_key), "");
         String location = "usuarios/" + userEmail + "/posts/" + mPhotoUri.getLastPathSegment();
@@ -192,7 +190,7 @@ public class PostActivity extends AppCompatActivity {
                     Log.d(TAG, "onComplete: " + downloadUri.toString());
                     Photo photo = new Photo();
                     photo.setTitle(mPostTitle.getText().toString());
-                    photo.setPhotoUri(downloadUri.toString());
+                    photo.setPhotoUrl(downloadUri.toString());
                     FirebaseUtils.sendPost(PostActivity.this, photo);
                 } else {
                     // Handle failures

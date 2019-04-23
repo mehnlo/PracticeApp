@@ -39,7 +39,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(@NonNull final Post item) {
         mTitle.setText(item.getPhoto().getTitle());
-        String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm").format(item.getPhoto().getTimestamp());
+        String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm").format(item.getPhoto().getDate());
         mDate.setText(timestamp);
         mUsername.setText(item.getUser().getUsername());
         Uri uri;
@@ -53,7 +53,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         } catch (NullPointerException e) {
             Log.w(TAG, "bind: parse user photo uri", e );
         } try {
-            uri = Uri.parse(item.getPhoto().getPhotoUri());
+            uri = Uri.parse(item.getPhoto().getPhotoUrl());
             GlideApp.with(itemView.getContext())
                     .load(uri)
                     .override(ViewGroup.LayoutParams.MATCH_PARENT)
@@ -78,10 +78,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                 MyMenuItemClickListener() {}
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId()) {
-                        case R.id.action_remove:
-                            Log.d(TAG, "onMenuItemClick: action_remove " + item.getItemId());
-                        default:
+                    if (item.getItemId() == R.id.action_remove) {
+                        Log.d(TAG, "onMenuItemClick: action_remove " + item.getItemId());
                     }
                     return false;
                 }
