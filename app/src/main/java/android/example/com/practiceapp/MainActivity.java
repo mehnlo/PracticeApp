@@ -104,7 +104,6 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
                 .commit();
-        Log.d(TAG, "onCreate: " + String.valueOf(fragmentManager.getBackStackEntryCount()));
         Intent intentThatStartedThisActivity = getIntent();
         if (intentThatStartedThisActivity.hasExtra(Intent.EXTRA_TEXT)) {
             Log.d(TAG, "onCreate: hasExtra(Intent.EXTRA_TEXT)");
@@ -222,17 +221,11 @@ public class MainActivity extends AppCompatActivity
                 .load(account.getPhotoUrl())
                 .circleCrop()
                 .into(mNavHeaderiv);
-
+        userSigned = new User(null, null, account.getDisplayName(), account.getEmail(), account.getPhotoUrl().toString(), null, null);
+        model.select(userSigned);
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String documentPath = "users/" + account.getEmail();
-        DocumentReference ref = db.document(documentPath);
-
-        ref.update(
-                User.FIELD_DISPLAYNAME, account.getDisplayName(),
-                User.FIELD_EMAIL, account.getEmail(),
-                User.FIELD_PHOTO_URL, account.getPhotoUrl().toString(),
-                User.FIELD_LAST_LOGIN, FieldValue.serverTimestamp()
-        );
+        DocumentReference ref = db.collection("users").document(account.getEmail());
+        ref.set(userSigned.toMap());
     }
 
 
@@ -424,7 +417,7 @@ public class MainActivity extends AppCompatActivity
         String username = prefs.getString(getString(R.string.account_name_key), "");
         String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
         userSigned = new User(null, username, null, email, photoUri, null ,null);
-
+        model.select(userSigned);
         Uri uri = Uri.parse(photoUri);
         if (!(TextUtils.isEmpty(email) && TextUtils.isEmpty(username) && TextUtils.isEmpty(photoUri))) {
             mNavHeaderTitle.setText(username);
@@ -468,6 +461,7 @@ public class MainActivity extends AppCompatActivity
 
     @NonNull
     private Task<Void> signOut(@NonNull Context context) {
+        model.select(null);
         AuthUI.getInstance().signOut(context);
         return Tasks.whenAll(
                 signOutIdps(context));

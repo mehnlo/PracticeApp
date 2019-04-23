@@ -2,6 +2,7 @@ package android.example.com.practiceapp.models;
 
 
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.util.Arrays;
@@ -113,13 +114,13 @@ public class User {
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put(FIELD_UID, uid);
-        result.put(FIELD_USERNAME, username);
-        result.put(FIELD_DISPLAYNAME, displayName);
-        result.put(FIELD_EMAIL, email);
-        result.put(FIELD_PHOTO_URL, photoUrl);
-        result.put(FIELD_LAST_LOGIN, lastLogin);
-        result.put(FIELD_PHOTOS, photos);
+        if (uid != null) result.put(FIELD_UID, uid);
+        if (username != null) result.put(FIELD_USERNAME, username);
+        if (displayName != null) result.put(FIELD_DISPLAYNAME, displayName);
+        if (email != null) result.put(FIELD_EMAIL, email);
+        if (photoUrl != null) result.put(FIELD_PHOTO_URL, photoUrl);
+        if (lastLogin != null) result.put(FIELD_LAST_LOGIN, FieldValue.serverTimestamp());
+        if (photos != null) result.put(FIELD_PHOTOS, photos);
         return result;
     }
 }
