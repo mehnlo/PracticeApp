@@ -6,6 +6,7 @@ import android.arch.paging.PagedList;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.example.com.practiceapp.adapter.ProfileImagesViewHolder;
+import android.example.com.practiceapp.adapter.SectionsPagerAdapter;
 import android.example.com.practiceapp.models.Photo;
 import android.example.com.practiceapp.models.Post;
 import android.example.com.practiceapp.models.User;
@@ -14,7 +15,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -50,38 +55,32 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class UserFragment extends Fragment {
     public static final String TAG = UserFragment.class.getSimpleName();
-    public static final int SPAN_COUNT = 3;
-    public static final int PREFETCH_DISTANCE = 2;
-    public static final int PAGE_SIZE = 6;
 
-    private Context mContext;
+    private Context context;
     private boolean userVisibleHint = true;
-    private RecyclerView mRecyclerView;
-    private RecyclerView.LayoutManager mLayoutManager;
-    private FirebaseFirestore mFirestore;
-    private CollectionReference mItemsCollection;
+    private FirebaseFirestore db;
     private DocumentReference mCountersRef;
-    private ProgressBar mProgressBar;
+    private ViewPager mViewPager;
+    private TabLayout mTabLayout;
+
     private final Post mPost = new Post();
 
     private ListenerRegistration counters;
 
-    ImageView mProfilePic;
-    TextView mProfileName;
-    TextView mProfileEmail;
-    TextView mPostCount;
-    TextView mFollowersCount;
-    TextView mFollowsCount;
-
-    Button mEditProfileButton;
+    private ImageView mProfilePic;
+    private TextView mProfileName;
+    private TextView mProfileEmail;
+    private TextView mPostCount;
+    private TextView mFollowersCount;
+    private TextView mFollowsCount;
+    private Button mProfileButton;
 
     public UserFragment() {}
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        // Get the application context
-        mContext = context;
+        this.context = context;
     }
 
     @Nullable
@@ -94,53 +93,27 @@ public class UserFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         bindView();
-        mFirestore = FirebaseFirestore.getInstance();
         UserViewModel model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
         model.getUserSelected().observe(this, new Observer<User>() {
             @Override
             public void onChanged(@Nullable User user) {
                 if (user != null) {
                     Log.d(TAG, "onChanged: the user isn't null");
+                    db = FirebaseFirestore.getInstance();
                     mPost.setUser(user);
                     String countersPath = "/counters/" + mPost.getUser().getEmail();
-                    mCountersRef = mFirestore.document(countersPath);
-                    String postsPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
-                    mItemsCollection = mFirestore.collection(postsPath);
+                    mCountersRef = db.document(countersPath);
                     setUpHeader();
-                    setUpAdapter();
                     initListeners();
                 } else {
                     Log.d(TAG, "onChanged: El usuario es nulo");
                 }
             }
         });
+        mViewPager.setAdapter(new SectionsPagerAdapter(getChildFragmentManager()));
+        mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mTabLayout));
+        mTabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
         userVisibleHint = true;
-        // TODO cambiar boton segun sea tu perfil u otro
-        mEditProfileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // TODO go to settings
-                showToast("TODO");
-            }
-        });
-        /*
-         * GridLayoutManager
-         *  A RecyclerView.LayoutManager implementations that lays out items in a grid.
-         *  By default, each item occupies 1 span. You can change it by providing a custom
-         *  GridLayoutManager.SpanSizeLookup instance via setSpanSizeLookup(SpanSizeLookup).
-         *
-         * public GridLayoutManager (Context context, int spanCount)
-         *  Creates a vertical GridLayoutManager
-         *
-         *  Parameters
-         *      context: Current context, will be used to access resources.
-         *      spanCount: The number of columns in the grid
-         *
-         */
-        // Define a layout for RecyclerView
-        mLayoutManager = new GridLayoutManager(mContext, SPAN_COUNT);
-
-
     }
 
     private void initListeners() {
@@ -159,89 +132,31 @@ public class UserFragment extends Fragment {
                 }
             }
         });
+
+        mProfileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO edit/follow/unfollow
+                showToast("TODO");
+            }
+        });
     }
 
     private void stopListener() {
         // Stop listening to changes
         Log.i(TAG, "stopListener()");
         counters.remove();
+        mTabLayout.clearOnTabSelectedListeners();
     }
 
     private void setUpHeader() {
         Uri uri = Uri.parse(mPost.getUser().getPhotoUrl());
-        GlideApp.with(mContext)
+        GlideApp.with(context)
                 .load(uri)
                 .circleCrop()
                 .into(mProfilePic);
         mProfileName.setText(mPost.getUser().getUsername());
         mProfileEmail.setText(mPost.getUser().getEmail());
-    }
-    private void setUpAdapter() {
-        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_DATE, Query.Direction.DESCENDING);
-
-        PagedList.Config config = new PagedList.Config.Builder()
-                .setEnablePlaceholders(false)
-                .setPrefetchDistance(PREFETCH_DISTANCE)
-                .setPageSize(PAGE_SIZE)
-                .build();
-        SnapshotParser<Post> parser = new SnapshotParser<Post>() {
-            @NonNull
-            @Override
-            public Post parseSnapshot(@NonNull DocumentSnapshot snapshot) {
-                Post post = new Post();
-                post.setUser(mPost.getUser());
-                if (snapshot.exists()) {
-                    Photo photo = snapshot.toObject(Photo.class);
-                    post.setPhoto(photo);
-                }
-                return post;
-            }
-        };
-
-        FirestorePagingOptions<Post> options = new FirestorePagingOptions.Builder<Post>()
-                .setLifecycleOwner(this)
-                .setQuery(baseQuery, config, parser)
-                .build();
-
-        FirestorePagingAdapter<Post, ProfileImagesViewHolder> adapter =
-                new FirestorePagingAdapter<Post, ProfileImagesViewHolder>(options) {
-                    @NonNull
-                    @Override
-                    public ProfileImagesViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-                        // Create a new View
-                        View v = LayoutInflater.from(mContext).inflate(R.layout.profile_item, viewGroup, false);
-                        return new ProfileImagesViewHolder(v);
-                    }
-
-                    @Override
-                    protected void onBindViewHolder(@NonNull ProfileImagesViewHolder holder, int position, @NonNull Post model) {
-                        holder.bind(model);
-                    }
-
-                    @Override
-                    protected void onLoadingStateChanged(@NonNull LoadingState state) {
-                        switch (state) {
-                            case LOADING_INITIAL:
-                            case LOADING_MORE:
-                                mProgressBar.setVisibility(View.VISIBLE);
-                                break;
-                            case LOADED:
-                                mProgressBar.setVisibility(View.GONE);
-                                break;
-                            case FINISHED:
-                                mProgressBar.setVisibility(View.GONE);
-                                showToast("Reached end of data set.");
-                                break;
-                            case ERROR:
-                                showToast("An error ocurred");
-                                retry();
-                                break;
-                        }
-                    }
-                };
-
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -263,30 +178,19 @@ public class UserFragment extends Fragment {
 
     private void bindView() {
         // Get the widgets reference from XML layout
-        mRecyclerView = Objects.requireNonNull(getView()).findViewById(R.id.recycler_view);
-        mProgressBar = getView().findViewById(R.id.paging_loading);
         mProfilePic = getView().findViewById(R.id.iv_profile_picture);
         mProfileName = getView().findViewById(R.id.tv_profile_name);
         mProfileEmail = getView().findViewById(R.id.tv_profile_email);
         mPostCount = getView().findViewById(R.id.tv_post_count);
         mFollowersCount = getView().findViewById(R.id.tv_followers_count);
         mFollowsCount = getView().findViewById(R.id.tv_follows_count);
-        mEditProfileButton = getView().findViewById(R.id.bt_edit_profile);
+        mProfileButton = getView().findViewById(R.id.bt_profile);
+        mViewPager = getView().findViewById(R.id.container);
+        mTabLayout = getView().findViewById(R.id.tabLayout);
     }
 
-    private void initUser() {
-        SharedPreferences prefs = mContext.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
-        String email = prefs.getString(getString(R.string.account_email_key), "");
-        String username = prefs.getString(getString(R.string.account_name_key), "");
-        String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
-        User mUser = new User();
-        mUser.setEmail(email);
-        mUser.setUsername(username);
-        mUser.setPhotoUrl(photoUri);
-        mPost.setUser(mUser);
-    }
     private void showToast(String message){
-        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
 }

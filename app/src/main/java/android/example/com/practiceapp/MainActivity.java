@@ -279,10 +279,6 @@ public class MainActivity extends AppCompatActivity
                         .addToBackStack(null)
                         .commit();
             }
-        } else if (id == R.id.nav_gallery) {
-            Toast.makeText(MainActivity.this, R.string.action_gallery, Toast.LENGTH_SHORT).show();
-            Intent intentToStartGalleryActivity = new Intent(MainActivity.this, GalleryActivity.class);
-            startActivity(intentToStartGalleryActivity);
         } else if (id == R.id.nav_search) {
             if (fragmentManager.findFragmentByTag(SEARCH_FRAGMENT) == null) { // First time
                 fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)

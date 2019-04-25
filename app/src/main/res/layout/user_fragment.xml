@@ -145,9 +145,8 @@
                         android:textColor="@color/fui_bgGitHub"
                         tools:text="Seguidos" />
                 </LinearLayout>
-                <!-- TODO Cambiar el estilo del botón, asignar funcion onClick -->
                 <Button
-                    android:id="@+id/bt_edit_profile"
+                    android:id="@+id/bt_profile"
                     style="@style/Widget.AppCompat.Button.Small"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -164,21 +163,30 @@
         </android.support.v7.widget.Toolbar>
 
         <android.support.design.widget.TabLayout
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="top"
             android:background="@drawable/profile_header">
+
             <android.support.design.widget.TabItem
+                android:id="@+id/ti_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:icon="@android:drawable/ic_menu_today" />
 
             <android.support.design.widget.TabItem
+                android:id="@+id/ti_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:icon="@android:drawable/ic_menu_gallery" />
         </android.support.design.widget.TabLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_user_fragment" />
+    <android.support.v4.view.ViewPager
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior" />
 
 </android.support.design.widget.CoordinatorLayout>
