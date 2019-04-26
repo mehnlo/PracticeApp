@@ -36,6 +36,7 @@
                 android:layout_width="20dp"
                 android:layout_height="30dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="4dp"
                 android:background="@null"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
@@ -67,6 +68,7 @@
                 android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
+                android:letterSpacing="-0.02"
                 android:lineSpacingExtra="5sp"
                 tools:text="John Doe"
                 android:textColor="@color/navy"
@@ -101,34 +103,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/iv_item_photo"
                 tools:text="Titulillo de la imagen" />
-
-            <!--<TextView-->
-                <!--android:id="@+id/tv_item_title"-->
-                <!--style="@style/TextAppearance.AppCompat.Title"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_gravity="center_vertical|start"-->
-                <!--android:fontFamily="monospace"-->
-                <!--android:textSize="18sp"-->
-                <!--card_view:layout_constraintStart_toStartOf="parent"-->
-                <!--card_view:layout_constraintTop_toTopOf="parent"-->
-                <!--tools:text="Alberto Garcia de Paredes Cidoncha" />-->
-
-            <!--<TextView-->
-                <!--android:id="@+id/tv_item_date"-->
-                <!--style="@style/TextAppearance.AppCompat.Title"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:fontFamily="monospace"-->
-                <!--android:textAlignment="textEnd"-->
-                <!--android:textColor="#000"-->
-                <!--android:textSize="16sp"-->
-                <!--card_view:layout_constraintEnd_toEndOf="parent"-->
-                <!--card_view:layout_constraintHorizontal_bias="0.0"-->
-                <!--card_view:layout_constraintStart_toStartOf="parent"-->
-                <!--card_view:layout_constraintTop_toBottomOf="@+id/tv_item_title"-->
-                <!--tools:text="8 de abril de 2019" />-->
-
 
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.CardView>

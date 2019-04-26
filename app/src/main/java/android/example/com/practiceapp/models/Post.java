@@ -43,4 +43,12 @@ public class Post {
         result.put(FIELD_PHOTOS, photo.toMap());
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "user=" + user.toString() +
+                ", photo=" + photo.toString() +
+                '}';
+    }
 }

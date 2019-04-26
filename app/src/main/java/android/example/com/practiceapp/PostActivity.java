@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.example.com.practiceapp.models.Photo;
 import android.example.com.practiceapp.utilities.FirebaseUtils;
+import android.example.com.practiceapp.utilities.GlideApp;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -129,7 +130,6 @@ public class PostActivity extends AppCompatActivity {
         mPostTitle.setEnabled(false);
         showProgressLoading();
         uploadPhoto();
-        //Toast.makeText(this, "Send post\nuserID: " + userID + "\npictureId: referencia de la base de datos" , Toast.LENGTH_SHORT).show();
     }
 
     @Override

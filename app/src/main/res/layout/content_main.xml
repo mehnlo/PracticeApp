@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/fragmentContent"
+    android:tag="MAIN_FRAGMENT"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/app_bar_main">
 
@@ -18,5 +19,4 @@
         android:textSize="30sp"
         android:textStyle="bold"
         tools:text="Main Fragment" />
-
 </FrameLayout>

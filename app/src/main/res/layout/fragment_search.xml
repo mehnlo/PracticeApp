@@ -16,9 +16,9 @@
         android:id="@+id/hits"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        algolia:itemLayout="@layout/hits_item"
+        algolia:itemLayout="@layout/item_hits"
         algolia:autoHideKeyboard="true"
         algolia:resultTemplate="@string/no_result_template"
-        tools:listitem="@layout/hits_item" />
+        tools:listitem="@layout/item_hits" />
 
 </LinearLayout>

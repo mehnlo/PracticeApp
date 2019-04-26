@@ -3,6 +3,7 @@ package android.example.com.practiceapp;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.example.com.practiceapp.models.User;
+import android.example.com.practiceapp.utilities.OnSearchSelectedListener;
 import android.example.com.practiceapp.viewmodel.UserViewModel;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -61,11 +62,6 @@ public class SearchFragment extends Fragment {
     public void setOnSearchSelectedListener(OnSearchSelectedListener callback) {
         this.callback = callback;
     }
-    // This interface can be implemented by the Activity, parent Fragment,
-    // or a separate test implementation.
-    public interface OnSearchSelectedListener {
-        void onUserSelected();
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -82,7 +78,7 @@ public class SearchFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.search_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_search, container, false);
     }
 
     @Override

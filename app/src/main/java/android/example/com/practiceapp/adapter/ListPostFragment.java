@@ -54,7 +54,7 @@ public class ListPostFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.content_list_user_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_content_list_user, container, false);
     }
 
     @Override
@@ -107,15 +107,15 @@ public class ListPostFragment extends Fragment {
                 .setQuery(baseQuery, config, parser)
                 .build();
 
-        FirestorePagingAdapter<Post, PostViewHolder> adapter =
-                new FirestorePagingAdapter<Post, PostViewHolder>(options) {
+        FirestorePagingAdapter<Post, ListPostViewHolder> adapter =
+                new FirestorePagingAdapter<Post, ListPostViewHolder>(options) {
 
                     @NonNull
-                    @Override public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.gallery_item, parent, false);
-                        return new PostViewHolder(view);
+                    @Override public ListPostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_post, parent, false);
+                        return new ListPostViewHolder(view);
                     }
-                    @Override protected void onBindViewHolder(@NonNull PostViewHolder holder, int position, @NonNull Post model) {
+                    @Override protected void onBindViewHolder(@NonNull ListPostViewHolder holder, int position, @NonNull Post model) {
                         holder.bind(model);
 
                     }

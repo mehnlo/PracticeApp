@@ -1,13 +1,14 @@
 package android.example.com.practiceapp;
 
 import android.Manifest;
-import android.app.ActivityManager;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.example.com.practiceapp.models.User;
+import android.example.com.practiceapp.utilities.GlideApp;
+import android.example.com.practiceapp.utilities.OnSearchSelectedListener;
 import android.example.com.practiceapp.viewmodel.MainActivityViewModel;
 import android.example.com.practiceapp.viewmodel.UserViewModel;
 import android.net.Uri;
@@ -48,7 +49,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
@@ -62,7 +62,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
-        SearchFragment.OnSearchSelectedListener{
+        OnSearchSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int RC_SING_IN = 9001;
@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity
     private MainFragment mainFragment = new MainFragment();
     private UserFragment userFragment = new UserFragment();
     private SearchFragment searchFragment = new SearchFragment();
+    private Fragment mContent = new Fragment();
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDreawerToggle;
     private NavigationView navigationView;
@@ -101,9 +102,6 @@ public class MainActivity extends AppCompatActivity
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(false);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
-                .commit();
         Intent intentThatStartedThisActivity = getIntent();
         if (intentThatStartedThisActivity.hasExtra(Intent.EXTRA_TEXT)) {
             Log.d(TAG, "onCreate: hasExtra(Intent.EXTRA_TEXT)");
@@ -172,7 +170,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "onBackPressed: pila: " + String.valueOf(getSupportFragmentManager().getBackStackEntryCount()));
+        Log.d(TAG, "onBackPressed: pila: " + getSupportFragmentManager().getBackStackEntryCount());
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
@@ -260,7 +258,11 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (id == R.id.nav_home) {
-            if (!fragmentManager.findFragmentByTag(MAIN_FRAGMENT).getUserVisibleHint()) {
+            if (fragmentManager.findFragmentByTag(MAIN_FRAGMENT) == null) { // First Time
+                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .commit();
+            } else if (!fragmentManager.findFragmentByTag(MAIN_FRAGMENT).getUserVisibleHint()) {
                 fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                         .addToBackStack(MAIN_FRAGMENT)
@@ -271,24 +273,24 @@ public class MainActivity extends AppCompatActivity
             if (fragmentManager.findFragmentByTag(USER_FRAGMENT) == null) { // First Time
                 fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(null)
+                        .addToBackStack(USER_FRAGMENT)
                         .commit();
             } else if (!fragmentManager.findFragmentByTag(USER_FRAGMENT).getUserVisibleHint()) { // Other times
                 fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(null)
+                        .addToBackStack(USER_FRAGMENT)
                         .commit();
             }
         } else if (id == R.id.nav_search) {
             if (fragmentManager.findFragmentByTag(SEARCH_FRAGMENT) == null) { // First time
                 fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(null)
+                        .addToBackStack(SEARCH_FRAGMENT)
                         .commit();
             } else if (!fragmentManager.findFragmentByTag(SEARCH_FRAGMENT).getUserVisibleHint()) { // Other times
                 fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(null)
+                        .addToBackStack(SEARCH_FRAGMENT)
                         .commit();
             }
         } else if (id == R.id.nav_settings) {
@@ -485,5 +487,9 @@ public class MainActivity extends AppCompatActivity
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .commit();
 
+    }
+
+    public void showOptions(View view) {
+        Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show();
     }
 }

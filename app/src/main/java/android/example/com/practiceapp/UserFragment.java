@@ -2,14 +2,13 @@ package android.example.com.practiceapp;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.arch.paging.PagedList;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.example.com.practiceapp.adapter.ProfileImagesViewHolder;
+import android.example.com.practiceapp.adapter.GridPostFragment;
+import android.example.com.practiceapp.adapter.GridPostViewHolder;
 import android.example.com.practiceapp.adapter.SectionsPagerAdapter;
-import android.example.com.practiceapp.models.Photo;
 import android.example.com.practiceapp.models.Post;
 import android.example.com.practiceapp.models.User;
+import android.example.com.practiceapp.utilities.GlideApp;
 import android.example.com.practiceapp.viewmodel.UserViewModel;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,40 +16,22 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.firebase.ui.firestore.SnapshotParser;
-import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
-import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.firebase.ui.firestore.paging.LoadingState;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentChange;
+
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
-
-import java.util.Objects;
-
-import static android.content.Context.MODE_PRIVATE;
 
 
 public class UserFragment extends Fragment {
@@ -83,10 +64,16 @@ public class UserFragment extends Fragment {
         this.context = context;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.user_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_user, container, false);
     }
 
     @Override

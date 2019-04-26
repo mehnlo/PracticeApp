@@ -10,6 +10,8 @@ import android.support.v4.app.FragmentPagerAdapter;
  */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+    public static final String TAG = SectionsPagerAdapter.class.getSimpleName();
+
     public SectionsPagerAdapter(FragmentManager fm) {
         super(fm);
     }

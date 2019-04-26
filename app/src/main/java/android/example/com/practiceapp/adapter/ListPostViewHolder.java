@@ -1,8 +1,8 @@
 package android.example.com.practiceapp.adapter;
 
-import android.example.com.practiceapp.GlideApp;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.models.Post;
+import android.example.com.practiceapp.utilities.GlideApp;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.PopupMenu;
@@ -17,9 +17,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import java.text.SimpleDateFormat;
 
-public class PostViewHolder extends RecyclerView.ViewHolder {
+class ListPostViewHolder extends RecyclerView.ViewHolder {
 
-    private static final String TAG = PostViewHolder.class.getSimpleName() ;
+    private static final String TAG = ListPostViewHolder.class.getSimpleName() ;
     private final ImageView mUserPic;
     private final ImageView mPhoto;
     private final TextView mDate;
@@ -27,7 +27,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private final TextView mTitle;
     private final ImageButton mButton;
 
-    public PostViewHolder(View itemView) {
+    ListPostViewHolder(View itemView) {
         super(itemView);
         mUserPic = itemView.findViewById(R.id.iv_item_user_profile);
         mPhoto = itemView.findViewById(R.id.iv_item_photo);
@@ -37,7 +37,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mButton = itemView.findViewById(R.id.bt_item_options);
     }
 
-    public void bind(@NonNull final Post item) {
+    void bind(@NonNull final Post item) {
         mTitle.setText(item.getPhoto().getTitle());
         String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm").format(item.getPhoto().getDate());
         mDate.setText(timestamp);

@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,6 +73,17 @@ public class Photo {
 
     public void setComments(Comment[] comments) {
         this.comments = comments;
+    }
+
+    @Override
+    public String toString() {
+        return "Photo{" +
+                "title='" + title + '\'' +
+                ", photoUrl='" + photoUrl + '\'' +
+                ", geo='" + geo + '\'' +
+                ", date=" + date +
+                ", comments=" + Arrays.toString(comments) +
+                '}';
     }
 
     @Exclude
