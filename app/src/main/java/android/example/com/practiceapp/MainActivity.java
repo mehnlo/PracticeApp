@@ -37,6 +37,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -75,7 +76,6 @@ public class MainActivity extends AppCompatActivity
     private MainFragment mainFragment = new MainFragment();
     private UserFragment userFragment = new UserFragment();
     private SearchFragment searchFragment = new SearchFragment();
-    private Fragment mContent = new Fragment();
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDreawerToggle;
     private NavigationView navigationView;
@@ -140,12 +140,17 @@ public class MainActivity extends AppCompatActivity
         });
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
-        mDreawerToggle = new ActionBarDrawerToggle(
-                this, /* host Activity */
+        mDreawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
                 mDrawerLayout, /* DrawerLayout object */
                 toolbar, /* Toolbar */
                 R.string.navigation_drawer_open, /* "open drawer" description */
-                R.string.navigation_drawer_close); /* "close drawer" description */
+                R.string.navigation_drawer_close) /* "close drawer" description */ {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                hideKeyboard();
+            }
+        };
 
         // Set the draawer toggle as the DrawerListener
         mDrawerLayout.addDrawerListener(mDreawerToggle);
@@ -226,7 +231,6 @@ public class MainActivity extends AppCompatActivity
         ref.set(userSigned.toMap());
     }
 
-
     private boolean shouldStartSignIn() {
         return (!mViewModel.isIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
     }
@@ -250,6 +254,13 @@ public class MainActivity extends AppCompatActivity
     private void startSignIn() {
         startActivityForResult(buildSignInIntent(), RC_SING_IN);
         mViewModel.setIsSigningIn(true);
+    }
+
+    private void hideKeyboard() {
+        try {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @Override
@@ -486,7 +497,6 @@ public class MainActivity extends AppCompatActivity
                 .addToBackStack(null)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .commit();
-
     }
 
     public void showOptions(View view) {

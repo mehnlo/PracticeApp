@@ -10,16 +10,21 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import com.algolia.instantsearch.core.events.CancelEvent;
+import com.algolia.instantsearch.core.events.ResultEvent;
 import com.algolia.instantsearch.core.events.SearchEvent;
 import com.algolia.instantsearch.core.helpers.Searcher;
 import com.algolia.instantsearch.core.model.AlgoliaErrorListener;
@@ -28,14 +33,13 @@ import com.algolia.instantsearch.core.model.SearchResults;
 import com.algolia.instantsearch.ui.helpers.InstantSearch;
 import com.algolia.instantsearch.ui.utils.ItemClickSupport;
 import com.algolia.instantsearch.ui.views.Hits;
+import com.algolia.instantsearch.ui.views.SearchBox;
 import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.Query;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 public class SearchFragment extends Fragment {
 
@@ -49,6 +53,7 @@ public class SearchFragment extends Fragment {
     private UserViewModel model;
     private Boolean userVisibleHint = true;
     private Searcher mSearcher;
+    private SearchView searchBox;
     private Hits mHits;
     private AlgoliaResultsListener mResultListener;
     private AlgoliaErrorListener mErrorListener;
@@ -57,7 +62,6 @@ public class SearchFragment extends Fragment {
     private ImageView mPictureHit;
     private TextView mUserNameHit;
     private TextView mEmailHit;
-
 
     public void setOnSearchSelectedListener(OnSearchSelectedListener callback) {
         this.callback = callback;
@@ -72,6 +76,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
     }
 
@@ -88,7 +93,7 @@ public class SearchFragment extends Fragment {
         bindView();
         userVisibleHint = true;
         mSearcher = Searcher.create(ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY, ALGOLIA_INDEX_NAME);
-        new InstantSearch(getActivity(), mSearcher); // link the Searcher to the UI
+
         mResultListener = new AlgoliaResultsListener() {
             @Override
             public void onResults(@NonNull SearchResults results, boolean isLoadingMore) {
@@ -100,15 +105,10 @@ public class SearchFragment extends Fragment {
             }
         };
         mSearcher.registerResultListener(mResultListener);
-        mSearcher.search(); // Show results for empty query (on app launch) / voice query (from intent)
         mHits.setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClick(RecyclerView recyclerView, int position, View v) {
-                // TODO hide keyboard
-                try {
-                    InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
-                } catch (Exception e) { e.printStackTrace(); }
+                hideKeyboard();
                 JSONObject jsonObject = mHits.get(position);
 
                 Log.d(TAG, "JSONObject: " + jsonObject.toString());
@@ -130,6 +130,13 @@ public class SearchFragment extends Fragment {
                 Toast.makeText(mContext, "TODO", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void hideKeyboard() {
+        try {
+            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @Override
@@ -155,6 +162,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onPause() {
         userVisibleHint = false;
+        hideKeyboard();
         super.onPause();
     }
 
@@ -169,13 +177,33 @@ public class SearchFragment extends Fragment {
     @Override
     public boolean getUserVisibleHint() { return userVisibleHint; }
 
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_search, menu);
+        new InstantSearch(getActivity(), menu, R.id.action_search, mSearcher); // link the Searcher to the UI
+        mSearcher.search();
+
+        final MenuItem itemSearch = menu.findItem(R.id.action_search);
+        searchBox = (SearchBox) itemSearch.getActionView();
+        ((SearchBox) searchBox).disableFullScreen();
+        itemSearch.expandActionView(); // open SearchBar on startup
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
     private void bindView(){
         mHits = getView().findViewById(R.id.hits);
         mPictureHit = getView().findViewById(R.id.imageView2);
         mEmailHit = getView().findViewById(R.id.user_email);
         mUserNameHit = getView().findViewById(R.id.user_name);
+
     }
+
     @Subscribe
-    public void onSearchEvent(SearchEvent event){ }
+    public void onCancelEvent(CancelEvent event){}
+    @Subscribe
+    public void onResultEvent(ResultEvent event){}
+    @Subscribe
+    public void onSearchEvent(SearchEvent event){}
 
 }
