@@ -26,20 +26,29 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
 
 
 public class UserFragment extends Fragment {
     public static final String TAG = UserFragment.class.getSimpleName();
+    public static final String UNFOLLOW = "UNFOLLOW";
+    public static final String FOLLOW = "FOLLOW";
+    public static final String EDIT_PROFILE = "EDIT_PROFILE";
 
     private Context context;
     private boolean userVisibleHint = true;
-    private FirebaseFirestore db;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private DocumentReference mCountersRef;
     private ViewPager mViewPager;
     private TabLayout mTabLayout;
@@ -80,28 +89,29 @@ public class UserFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         bindView();
-        UserViewModel model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
-        model.getUserSelected().observe(this, new Observer<User>() {
-            @Override
-            public void onChanged(@Nullable User user) {
-                if (user != null) {
-                    Log.d(TAG, "onChanged: the user isn't null");
-                    db = FirebaseFirestore.getInstance();
-                    mPost.setUser(user);
-                    String countersPath = "/counters/" + mPost.getUser().getEmail();
-                    mCountersRef = db.document(countersPath);
-                    setUpHeader();
-                    initListeners();
-                } else {
-                    Log.d(TAG, "onChanged: El usuario es nulo");
-                }
-            }
-        });
+        subscribeToModel();
         mViewPager.setAdapter(new SectionsPagerAdapter(getChildFragmentManager()));
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mTabLayout));
         mTabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
         userVisibleHint = true;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //Highlight the selected item has been done by NavigationView
+        ((MainActivity)getActivity()).setNavItemChecked(1);
+    }
+
+    @Override
+    public void onPause() {
+        userVisibleHint = false;
+        stopListener();
+        super.onPause();
+    }
+
+    @Override
+    public boolean getUserVisibleHint() { return userVisibleHint; }
 
     private void initListeners() {
         counters = mCountersRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
@@ -117,14 +127,6 @@ public class UserFragment extends Fragment {
                 } if (snapshot.contains("follows")) {
                     mFollowsCount.setText(snapshot.get("follows").toString());
                 }
-            }
-        });
-
-        mProfileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // TODO edit/follow/unfollow
-                showToast("TODO");
             }
         });
     }
@@ -146,22 +148,71 @@ public class UserFragment extends Fragment {
         mProfileEmail.setText(mPost.getUser().getEmail());
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        //Highlight the selected item has been done by NavigationView
-        ((MainActivity)getActivity()).setNavItemChecked(1);
+    private void subscribeToModel() {
+        final UserViewModel model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
+        model.getUserSelected().observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(@Nullable User user) {
+                if (user != null) {
+                    mPost.setUser(user);
+                    String countersPath = "/counters/" + mPost.getUser().getEmail();
+                    mCountersRef = db.document(countersPath);
+                    setUpHeader();
+                    initListeners();
+                } else {
+                    Log.d(TAG, "onChanged: El usuario es nulo");
+                }
+            }
+        });
+        model.getActionButton().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable String s) {
+                if (s != null) {
+                    View.OnClickListener action = null;
+                    if (s.equals(EDIT_PROFILE)) {
+                        mProfileButton.setText(getString(R.string.user_fragment_edit_profile));
+                        action = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                showToast("EditProfile");
+                                // TODO(1) Create method editProfile
+                                // Inside method 2-2
+                                // TODO(2) Go to EditProfile Fragment
+                            }
+                        };
+                    } else if (s.equals(FOLLOW)) {
+                        mProfileButton.setText(getString(R.string.user_fragment_follow_profile));
+                        action = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                showToast("Follow");
+                                // TODO(3) Create method followUser()
+                                // Inside method 4-7
+                                // TODO(4) Add the reference in Firestore Database
+                                // TODO(5) Increment fieldValue of countFollows
+                                // TODO(6) Increment fieldValue of countFollowers in the userSelected
+                                // TODO(7) Send notification to the userSelected
+                            }
+                        };
+                    } else if (s.equals(UNFOLLOW)) {
+                        mProfileButton.setText(getString(R.string.user_fragment_unfollow_profile));
+                        action = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                showToast("Unfollow");
+                                // TODO(8) Create method unfollowUser()
+                                // Inside method 9-11
+                                // TODO(9) Remove the reference in Firestore Database
+                                // TODO(10) Decrement fieldValue of countFollows
+                                // TODO(11) Decrement fieldValue of countFollowers in the userSelected
+                            }
+                        };
+                    }
+                    mProfileButton.setOnClickListener(action);
+                }
+            }
+        });
     }
-
-    @Override
-    public void onPause() {
-        userVisibleHint = false;
-        stopListener();
-        super.onPause();
-    }
-
-    @Override
-    public boolean getUserVisibleHint() { return userVisibleHint; }
 
     private void bindView() {
         // Get the widgets reference from XML layout

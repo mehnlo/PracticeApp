@@ -61,6 +61,8 @@
     <string name="user_fragment_follows">Follows</string>
     <string name="user_fragment_followers">Followers</string>
     <string name="user_fragment_edit_profile">Edit Profile</string>
+    <string name="user_fragment_follow_profile">Follow</string>
+    <string name="user_fragment_unfollow_profile">Unfollow</string>
     <!-- - - - - - - - - - - -->
     <!--   Search Fragment   -->
     <!-- - - - - - - - - - - -->

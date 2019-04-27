@@ -30,4 +30,6 @@
     <string name="user_fragment_edit_profile">Editar Perfil</string>
     <string name="new_post">Nueva Publicación</string>
     <string name="title_activity_edit_user">Editar Perfil</string>
+    <string name="user_fragment_follow_profile">Seguir</string>
+    <string name="user_fragment_unfollow_profile">Dejar de seguir</string>
 </resources>

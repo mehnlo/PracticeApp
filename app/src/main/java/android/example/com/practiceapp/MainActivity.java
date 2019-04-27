@@ -225,6 +225,7 @@ public class MainActivity extends AppCompatActivity
                 .circleCrop()
                 .into(mNavHeaderiv);
         userSigned = new User(null, null, account.getDisplayName(), account.getEmail(), account.getPhotoUrl().toString(), null, null);
+        model.setUserSigned(userSigned);
         model.select(userSigned);
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference ref = db.collection("users").document(account.getEmail());
@@ -309,7 +310,7 @@ public class MainActivity extends AppCompatActivity
             Intent intentToStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intentToStartSettingsActivity);
         } else if (id == R.id.nav_invite) {
-            // TODO pedir permiso para leer contactos y syncronizar con firebase
+            // TODO(12) request permissions to read contacts
             showTodoToast();
         } else if (id == R.id.nav_sign_out) {
             Toast.makeText(MainActivity.this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
@@ -426,6 +427,7 @@ public class MainActivity extends AppCompatActivity
         String username = prefs.getString(getString(R.string.account_name_key), "");
         String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
         userSigned = new User(null, username, null, email, photoUri, null ,null);
+        model.setUserSigned(userSigned);
         model.select(userSigned);
         Uri uri = Uri.parse(photoUri);
         if (!(TextUtils.isEmpty(email) && TextUtils.isEmpty(username) && TextUtils.isEmpty(photoUri))) {
@@ -470,6 +472,7 @@ public class MainActivity extends AppCompatActivity
 
     @NonNull
     private Task<Void> signOut(@NonNull Context context) {
+        model.setUserSigned(null);
         model.select(null);
         AuthUI.getInstance().signOut(context);
         return Tasks.whenAll(
@@ -492,7 +495,6 @@ public class MainActivity extends AppCompatActivity
     public void onUserSelected() {
         // The user selected the email from the SearchFragment
         // Do something here to display that user detail
-        Log.d(TAG, "onItemSelected: ");
         getSupportFragmentManager().beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
                 .addToBackStack(null)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
