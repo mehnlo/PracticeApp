@@ -469,6 +469,11 @@ public class MainActivity extends AppCompatActivity
     private void showTodoToast() {
         Toast.makeText(this, "TODO: Implement", Toast.LENGTH_SHORT).show();
     }
+    public void signOut(View view) {
+        Toast.makeText(this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
+        signOut(MainActivity.this);
+        startSignIn();
+    }
 
     @NonNull
     private Task<Void> signOut(@NonNull Context context) {

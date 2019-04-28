@@ -5,8 +5,6 @@ import android.content.SharedPreferences;
 import android.example.com.practiceapp.models.Photo;
 import android.example.com.practiceapp.utilities.FirebaseUtils;
 import android.example.com.practiceapp.utilities.GlideApp;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -134,7 +132,7 @@ public class PostActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.post_menu, menu);
+        getMenuInflater().inflate(R.menu.menu_post, menu);
         return true;
     }
 

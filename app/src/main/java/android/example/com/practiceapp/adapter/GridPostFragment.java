@@ -25,12 +25,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.firebase.ui.firestore.SnapshotParser;
-import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.firebase.ui.firestore.paging.LoadingState;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -55,9 +52,7 @@ public class GridPostFragment extends Fragment
     private PostViewModel postViewModel;
 
 
-    public GridPostFragment() {
-        super();
-    }
+    public GridPostFragment() { }
 
     @Override
     public void onAttach(Context context) {
@@ -76,12 +71,17 @@ public class GridPostFragment extends Fragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         bindView();
+        subscribeToModel();
+        postViewModel = ViewModelProviders.of(getActivity()).get(PostViewModel.class);
+        postViewModel.getPostSelected();
+    }
+
+    private void subscribeToModel() {
         UserViewModel model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
         model.getUserSelected().observe(this, new Observer<User>() {
             @Override
             public void onChanged(@Nullable User user) {
                 if (user != null) {
-                    Log.d(TAG, "onChanged: the user isn't null");
                     db = FirebaseFirestore.getInstance();
                     mPost.setUser(user);
                     String postsPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
@@ -92,8 +92,6 @@ public class GridPostFragment extends Fragment
                 }
             }
         });
-        postViewModel = ViewModelProviders.of(getActivity()).get(PostViewModel.class);
-        postViewModel.getPostSelected();
     }
 
     private void setUpAdapter() {
@@ -104,6 +102,7 @@ public class GridPostFragment extends Fragment
                 .setPrefetchDistance(PREFETCH_DISTANCE)
                 .setPageSize(PAGE_SIZE)
                 .build();
+
         SnapshotParser<Post> parser = new SnapshotParser<Post>() {
             @NonNull
             @Override
@@ -123,47 +122,9 @@ public class GridPostFragment extends Fragment
                 .setQuery(baseQuery, config, parser)
                 .build();
 
-        FirestorePagingAdapter<Post, GridPostViewHolder> adapter =
-                new FirestorePagingAdapter<Post, GridPostViewHolder>(options) {
-                    @NonNull
-                    @Override
-                    public GridPostViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
-                        // Create a new View
-                        View v = LayoutInflater.from(context).inflate(R.layout.item_grid_post, viewGroup, false);
-                        return new GridPostViewHolder(v, postViewModel, GridPostFragment.this);
-                    }
-
-                    @Override
-                    protected void onBindViewHolder(@NonNull GridPostViewHolder holder, int position, @NonNull Post model) {
-                        holder.bind(model);
-                    }
-
-                    @Override
-                    public int getItemViewType(int position) {
-                        return super.getItemViewType(position);
-                    }
-
-                    @Override
-                    protected void onLoadingStateChanged(@NonNull LoadingState state) {
-                        switch (state) {
-                            case LOADING_INITIAL:
-                            case LOADING_MORE:
-                                mProgressBar.setVisibility(View.VISIBLE);
-                                break;
-                            case LOADED:
-                                mProgressBar.setVisibility(View.GONE);
-                                break;
-                            case FINISHED:
-                                mProgressBar.setVisibility(View.GONE);
-                                showToast("Reached end of data set.");
-                                break;
-                            case ERROR:
-                                showToast("An error ocurred");
-                                retry();
-                                break;
-                        }
-                    }
-                };
+        GridPostAdapter adapter = new GridPostAdapter(options, context, mProgressBar);
+        adapter.setCallback(GridPostFragment.this);
+        adapter.setViewModel(postViewModel);
         mRecyclerView.setLayoutManager(new GridLayoutManager(context, SPAN_COUNT));
         mRecyclerView.setAdapter(adapter);
     }
@@ -172,8 +133,6 @@ public class GridPostFragment extends Fragment
         mProgressBar = getView().findViewById(R.id.paging_loading);
         mRecyclerView = getView().findViewById(R.id.recycler_view);
     }
-
-    private void showToast(String message){ Toast.makeText(context, message, Toast.LENGTH_SHORT).show(); }
 
     @Override
     public void onPostSelected() {

@@ -20,12 +20,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.firebase.ui.firestore.SnapshotParser;
-import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.firebase.ui.firestore.paging.LoadingState;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -61,12 +58,15 @@ public class ListPostFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         bindView();
+        subscribeToModel();
+    }
+
+    private void subscribeToModel() {
         UserViewModel model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
         model.getUserSelected().observe(this, new Observer<User>() {
             @Override
             public void onChanged(@Nullable User user) {
                 if (user != null) {
-                    Log.d(TAG, "onChanged: the user isn't null");
                     db = FirebaseFirestore.getInstance();
                     mPost.setUser(user);
                     String postsPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
@@ -107,45 +107,10 @@ public class ListPostFragment extends Fragment {
                 .setQuery(baseQuery, config, parser)
                 .build();
 
-        FirestorePagingAdapter<Post, ListPostViewHolder> adapter =
-                new FirestorePagingAdapter<Post, ListPostViewHolder>(options) {
-
-                    @NonNull
-                    @Override public ListPostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_post, parent, false);
-                        return new ListPostViewHolder(view);
-                    }
-                    @Override protected void onBindViewHolder(@NonNull ListPostViewHolder holder, int position, @NonNull Post model) {
-                        holder.bind(model);
-
-                    }
-                    @Override protected void onLoadingStateChanged(@NonNull LoadingState state) {
-                        switch (state) {
-                            case LOADING_INITIAL:
-                            case LOADING_MORE:
-                                mProgressBar.setVisibility(View.VISIBLE);
-                                break;
-                            case LOADED:
-                                mProgressBar.setVisibility(View.GONE);
-                                break;
-                            case FINISHED:
-                                mProgressBar.setVisibility(View.GONE);
-                                showToast("Reached end of data set.");
-                                break;
-                            case ERROR:
-                                showToast("An error ocurred");
-                                retry();
-                                break;
-                        }
-                    }
-                };
+        ListPostAdapter adapter = new ListPostAdapter(options, context, mProgressBar);
 
         mRecycler.setLayoutManager(new LinearLayoutManager(context));
         mRecycler.setAdapter(adapter);
-    }
-
-    private void showToast(@NonNull String message) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
     private void bindView() {

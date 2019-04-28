@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -45,6 +46,7 @@ public class UserFragment extends Fragment {
     public static final String UNFOLLOW = "UNFOLLOW";
     public static final String FOLLOW = "FOLLOW";
     public static final String EDIT_PROFILE = "EDIT_PROFILE";
+    public static final String EDIT_PROFILE_FRAGMENT = "EDIT_PROFILE_FRAGMENT";
 
     private Context context;
     private boolean userVisibleHint = true;
@@ -178,6 +180,7 @@ public class UserFragment extends Fragment {
                                 // TODO(1) Create method editProfile
                                 // Inside method 2-2
                                 // TODO(2) Go to EditProfile Fragment
+                                editProfile();
                             }
                         };
                     } else if (s.equals(FOLLOW)) {
@@ -214,6 +217,12 @@ public class UserFragment extends Fragment {
         });
     }
 
+    private void editProfile() {
+        getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.content_main, new EditProfileFragment(), EDIT_PROFILE_FRAGMENT)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .addToBackStack(EDIT_PROFILE_FRAGMENT)
+                .commit();
+    }
     private void bindView() {
         // Get the widgets reference from XML layout
         mProfilePic = getView().findViewById(R.id.iv_profile_picture);

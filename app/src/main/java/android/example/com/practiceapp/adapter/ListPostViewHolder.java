@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -48,7 +47,7 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
             GlideApp.with(itemView.getContext())
                     .load(uri)
                     .circleCrop()
-                    .override(ViewGroup.LayoutParams.MATCH_PARENT)
+                    .override(mUserPic.getLayoutParams().width)
                     .into(mUserPic);
         } catch (NullPointerException e) {
             Log.w(TAG, "bind: parse user photo uri", e );
@@ -56,7 +55,7 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
             uri = Uri.parse(item.getPhoto().getPhotoUrl());
             GlideApp.with(itemView.getContext())
                     .load(uri)
-                    .override(ViewGroup.LayoutParams.MATCH_PARENT)
+                    .override(mPhoto.getLayoutParams().width)
                     .into(mPhoto);
         } catch (NullPointerException e) {
             Log.w(TAG, "bind: parse photo uri", e);
@@ -70,7 +69,7 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
                 // inflate menu
                 PopupMenu popup = new PopupMenu(mButton.getContext(), mButton);
                 MenuInflater inflater = popup.getMenuInflater();
-                inflater.inflate(R.menu.gallery_item_menu, popup.getMenu());
+                inflater.inflate(R.menu.menu_list_post_item, popup.getMenu());
                 popup.setOnMenuItemClickListener(new MyMenuItemClickListener());
                 popup.show();
             }

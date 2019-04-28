@@ -1,6 +1,5 @@
 package android.example.com.practiceapp.viewmodel;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.example.com.practiceapp.models.User;
@@ -33,7 +32,7 @@ public class UserViewModel extends ViewModel {
 
     public void select(User user) {
         userSelected.setValue(user);
-        loadFollows();
+        if (user != null) loadFollows();
     }
 
     public MutableLiveData<User> getUserSelected() {
