@@ -8,10 +8,15 @@ import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import javax.annotation.Nullable;
 
 public class UserViewModel extends ViewModel {
     private static final String TAG = UserViewModel.class.getSimpleName();
@@ -23,12 +28,14 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<User> userSigned = new MutableLiveData<>();
     private MutableLiveData<User> userSelected;
     private MutableLiveData<String> buttonText = new MutableLiveData<>();
+    private ListenerRegistration eventListener;
 
 
     public void setUserSigned(User user) {
-        Log.d(TAG, "setUserSigned()");
         userSigned.setValue(user);
     }
+
+    public MutableLiveData<User> getUserSigned() {return userSigned;}
 
     public void select(User user) {
         userSelected.setValue(user);
@@ -46,29 +53,29 @@ public class UserViewModel extends ViewModel {
 
     private void loadFollows() {
         if (isMyProfile()){
-            Log.d(TAG, EDIT_PROFILE);
             buttonText.setValue(EDIT_PROFILE);
             return;
         }
-        db.collection("following/" + userSigned.getValue().getEmail() + "/userFollowing/")
-            .whereEqualTo(FieldPath.documentId(), userSelected.getValue().getEmail())
-            .get()
-            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        if (!task.getResult().isEmpty()){
-                            Log.d(TAG, "you are following " + userSelected.getValue().getEmail());
+
+        eventListener = db.collection("following/" + userSigned.getValue().getEmail() + "/userFollowing")
+                .whereEqualTo(FieldPath.documentId(), userSelected.getValue().getEmail())
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w(TAG, "Failed with ", e.fillInStackTrace());
+                            return;
+                        }
+
+                        if (snapshots != null && !snapshots.isEmpty()) {
+                            Log.d(TAG, "You are following " + userSelected.getValue().getEmail());
                             buttonText.setValue(UNFOLLOW);
                         } else {
-                            Log.d(TAG, "you are not following " + userSelected.getValue().getEmail());
+                            Log.d(TAG, "You aren't following " + userSelected.getValue().getEmail());
                             buttonText.setValue(FOLLOW);
                         }
-                    } else {
-                        Log.w(TAG, "Failed with ", task.getException());
                     }
-                }
-            });
+                });
     }
 
     public MutableLiveData<String> getActionButton() { return buttonText; }
@@ -90,4 +97,9 @@ public class UserViewModel extends ViewModel {
         });
     }
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        eventListener.remove();
+    }
 }

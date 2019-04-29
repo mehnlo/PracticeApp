@@ -3,8 +3,6 @@ package android.example.com.practiceapp;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
-import android.example.com.practiceapp.adapter.GridPostFragment;
-import android.example.com.practiceapp.adapter.GridPostViewHolder;
 import android.example.com.practiceapp.adapter.SectionsPagerAdapter;
 import android.example.com.practiceapp.models.Post;
 import android.example.com.practiceapp.models.User;
@@ -32,13 +30,14 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class UserFragment extends Fragment {
@@ -177,9 +176,6 @@ public class UserFragment extends Fragment {
                             @Override
                             public void onClick(View view) {
                                 showToast("EditProfile");
-                                // TODO(1) Create method editProfile
-                                // Inside method 2-2
-                                // TODO(2) Go to EditProfile Fragment
                                 editProfile();
                             }
                         };
@@ -189,12 +185,7 @@ public class UserFragment extends Fragment {
                             @Override
                             public void onClick(View view) {
                                 showToast("Follow");
-                                // TODO(3) Create method followUser()
-                                // Inside method 4-7
-                                // TODO(4) Add the reference in Firestore Database
-                                // TODO(5) Increment fieldValue of countFollows
-                                // TODO(6) Increment fieldValue of countFollowers in the userSelected
-                                // TODO(7) Send notification to the userSelected
+                                followUser(model.getUserSigned().getValue().getEmail());
                             }
                         };
                     } else if (s.equals(UNFOLLOW)) {
@@ -203,11 +194,7 @@ public class UserFragment extends Fragment {
                             @Override
                             public void onClick(View view) {
                                 showToast("Unfollow");
-                                // TODO(8) Create method unfollowUser()
-                                // Inside method 9-11
-                                // TODO(9) Remove the reference in Firestore Database
-                                // TODO(10) Decrement fieldValue of countFollows
-                                // TODO(11) Decrement fieldValue of countFollowers in the userSelected
+                                unfollowUser(model.getUserSigned().getValue().getEmail());
                             }
                         };
                     }
@@ -217,12 +204,65 @@ public class UserFragment extends Fragment {
         });
     }
 
+    private void followUser(String emailSigned) {
+        Map<String, Object> data = new HashMap<>();
+        DocumentReference followingRef = db.collection("following/" + emailSigned + "/userFollowing").document(mPost.getUser().getEmail());
+        DocumentReference followersRef = db.collection("followers/" + mPost.getUser().getEmail() + "/userFollowing").document(emailSigned);
+        DocumentReference countFollowsRef = db.collection("counters").document(emailSigned);
+        DocumentReference countFollowersRef = db.collection("counters").document(mPost.getUser().getEmail());
+        // Get a new write batch
+        WriteBatch batch = db.batch();
+        batch.set(followingRef, data);
+        batch.set(followersRef, data);
+        batch.update(countFollowsRef, "follows", FieldValue.increment(1));
+        batch.update(countFollowersRef, "followers", FieldValue.increment(1));
+        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "followUser success");
+                } else {
+                    Log.w(TAG, "followUser failed with: ", task.getException());
+                }
+            }
+        });
+
+        // TODO(1) Send notification to the userSelected
+
+    }
+
+    private void unfollowUser(String emailSigned) {
+        Map<String, Object> data = new HashMap<>();
+        DocumentReference followingRef = db.collection("following/" + emailSigned + "/userFollowing").document(mPost.getUser().getEmail());
+        DocumentReference followersRef = db.collection("followers/" + mPost.getUser().getEmail() + "/userFollowers").document(emailSigned);
+        DocumentReference countFollowsRef = db.collection("counters").document(emailSigned);
+        DocumentReference countFollowersRef = db.collection("counters").document(mPost.getUser().getEmail());
+        // Get a new write batch
+        WriteBatch batch = db.batch();
+        batch.delete(followingRef);
+        batch.delete(followersRef);
+        batch.update(countFollowsRef, "follows", FieldValue.increment(-1));
+        batch.update(countFollowersRef, "followers", FieldValue.increment(-1));
+        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "unfollowUser success");
+                } else {
+                    Log.w(TAG, "unfollowUser failed with: ", task.getException());
+                }
+            }
+        });
+
+     }
+
     private void editProfile() {
         getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.content_main, new EditProfileFragment(), EDIT_PROFILE_FRAGMENT)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .addToBackStack(EDIT_PROFILE_FRAGMENT)
                 .commit();
     }
+
     private void bindView() {
         // Get the widgets reference from XML layout
         mProfilePic = getView().findViewById(R.id.iv_profile_picture);

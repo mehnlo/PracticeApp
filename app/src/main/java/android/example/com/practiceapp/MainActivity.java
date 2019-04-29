@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity
             Intent intentToStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intentToStartSettingsActivity);
         } else if (id == R.id.nav_invite) {
-            // TODO(12) request permissions to read contacts
+            // TODO(2) request permissions to read contacts
             showTodoToast();
         } else if (id == R.id.nav_sign_out) {
             Toast.makeText(MainActivity.this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
