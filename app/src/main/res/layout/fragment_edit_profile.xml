@@ -1,168 +1,215 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/fragmentContent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
-        <android.support.v7.widget.CardView
+        <RelativeLayout
+            android:id="@+id/rellay1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:cardBackgroundColor="@color/material_green_500"
-            app:cardElevation="4dp"
-            app:cardMaxElevation="8dp"
-            app:contentPaddingBottom="8dp">
+            android:layout_height="wrap_content"
+            android:background="@drawable/custom_bg_gradient">
 
-            <android.support.constraint.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+            <RelativeLayout
+                android:id="@+id/imgUser"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/circle_border">
 
                 <ImageView
                     android:id="@+id/profile_pic"
                     android:layout_width="@dimen/edit_profile_profile_picture_size"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_height="@dimen/edit_profile_profile_picture_size"
+                    android:layout_margin="9dp"
+                    android:padding="3dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerInside"
+                    android:background="@drawable/circle"
                     android:contentDescription="@string/iv_content_description_user_profile"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     tools:srcCompat="@tools:sample/avatars[2]" />
 
-                <Button
-                    android:id="@+id/bt_change_profile_pic"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
-                    android:text="@string/action_update_profile_pic"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/profile_pic" />
-            </android.support.constraint.ConstraintLayout>
-        </android.support.v7.widget.CardView>
+            </RelativeLayout>
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/action_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/imgUser"
+                android:layout_alignBottom="@+id/imgUser"
+                app:srcCompat="@drawable/ic_edit"/>
+        </RelativeLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <TextView
-                android:id="@+id/tv_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/account_name" />
+                android:layout_below="@+id/rellay1"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:layout_marginStart="30dp"
+                android:layout_centerInParent="true"
+                android:layout_marginEnd="30dp"
+                android:layout_marginTop="20dp">
 
-            <EditText
-                android:id="@+id/et_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autofillHints="@string/account_name"
-                android:ems="10"
-                android:hint="@string/account_name"
-                android:inputType="textPersonName"
-                android:labelFor="@id/tv_name" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_username_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/account_username" />
+                    <TextView
+                        android:id="@+id/tv_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/material_green_700"
+                        android:textSize="16sp"
+                        android:text="@string/account_name" />
 
-            <EditText
-                android:id="@+id/et_username"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autofillHints="@string/account_username"
-                android:ems="10"
-                android:hint="@string/account_username"
-                android:inputType="textPersonName"
-                android:labelFor="@+id/tv_username_label" />
+                    <EditText
+                        android:id="@+id/et_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:autofillHints="@string/account_name"
+                        android:ems="10"
+                        android:hint="@string/account_name"
+                        android:inputType="textPersonName"
+                        android:labelFor="@id/tv_name" />
 
-            <TextView
-                android:id="@+id/tv_private_data"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/private_data"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tv_username_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/material_green_700"
+                        android:textSize="16sp"
+                        android:text="@string/account_username" />
 
-            <View
-                android:id="@+id/divider2"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="8dp"
-                android:background="?android:attr/listDivider" />
+                    <EditText
+                        android:id="@+id/et_username"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:autofillHints="@string/account_username"
+                        android:ems="10"
+                        android:hint="@string/account_username"
+                        android:inputType="textPersonName"
+                        android:labelFor="@+id/tv_username_label" />
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="15dp"
+                        android:background="@color/material_green_50"/>
+                </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_email_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/email_label" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tv_private_data"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/private_data"
+                        android:textSize="18sp"
+                        android:textColor="@color/material_green_700"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_tlf_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/tlf_label" />
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="15dp"
+                        android:background="@color/material_green_50"/>
+                </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_tlf"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_sex_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/sex_label" />
+                    <TextView
+                        android:id="@+id/tv_email_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/material_green_700"
+                        android:textSize="16sp"
+                        android:text="@string/email_label" />
 
-            <Spinner
-                android:id="@+id/sp_sex"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/sex_array" />
+                    <TextView
+                        android:id="@+id/tv_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        tools:text="default@practiceapp.com"/>
 
-            <View
-                android:id="@+id/divider3"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:background="?android:attr/listDivider" />
+                    <TextView
+                        android:id="@+id/tv_tlf_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/material_green_700"
+                        android:textSize="16sp"
+                        android:text="@string/tlf_label" />
 
-            <Button
-                android:id="@+id/action_sign_out"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
-                android:drawableStart="@drawable/ic_sign_out"
-                android:onClick="signOut"
-                android:text="@string/action_sign_out" />
+                    <TextView
+                        android:id="@+id/tv_tlf"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        tools:text="+1-222-555-1"/>
 
-            <Button
-                android:id="@+id/action_delete_account"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
-                android:text="@string/action_delete_account"
-                android:textColor="@color/fui_bgEmail" />
-        </LinearLayout>
+                    <TextView
+                        android:id="@+id/tv_sex_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/material_green_700"
+                        android:textSize="16sp"
+                        android:text="@string/sex_label" />
 
-    </LinearLayout>
+                    <Spinner
+                        android:id="@+id/sp_sex"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/sex_array" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="15dp"
+                        android:background="@color/material_green_50"/>
+                </LinearLayout>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15dp"
+                        android:orientation="vertical">
+                    <Button
+                        android:id="@+id/action_sign_out"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+                        android:drawableStart="@drawable/ic_sign_out"
+                        android:onClick="signOut"
+                        android:text="@string/action_sign_out" />
+
+                    <Button
+                        android:id="@+id/action_delete_account"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+                        android:text="@string/action_delete_account"
+                        android:drawableStart="@drawable/ic_delete_forever"
+                        android:textColor="@color/fui_bgEmail" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+    </RelativeLayout>
+
 </ScrollView>

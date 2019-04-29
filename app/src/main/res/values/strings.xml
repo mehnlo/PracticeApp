@@ -70,7 +70,7 @@
     <string name="search_hint">Search&#8230;</string>
     <string name="title_activity_edit_user">EditUserActivity</string>
     <string name="action_delete_account">delete account</string>
-    <string name="account_username">username</string>
+    <string name="account_username">Username</string>
     <string name="action_update_profile_pic">change profile pic</string>
     <string name="account_name">Name</string>
     <string name="private_data">Private data</string>
