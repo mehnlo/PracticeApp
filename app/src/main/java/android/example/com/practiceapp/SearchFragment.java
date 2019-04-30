@@ -20,8 +20,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.algolia.instantsearch.core.events.CancelEvent;
 import com.algolia.instantsearch.core.events.ResultEvent;
@@ -38,7 +36,6 @@ import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.Query;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SearchFragment extends Fragment {
@@ -48,20 +45,14 @@ public class SearchFragment extends Fragment {
     public static final String ALGOLIA_SEARCH_API_KEY = "a5b6026886482735cb7d88d84ce65848";
     public static final String ALGOLIA_INDEX_NAME = "usuarios";
 
-
     private Context mContext;
     private UserViewModel model;
     private Boolean userVisibleHint = true;
     private Searcher mSearcher;
-    private SearchView searchBox;
     private Hits mHits;
     private AlgoliaResultsListener mResultListener;
     private AlgoliaErrorListener mErrorListener;
     private OnSearchSelectedListener callback;
-
-    private ImageView mPictureHit;
-    private TextView mUserNameHit;
-    private TextView mEmailHit;
 
     public void setOnSearchSelectedListener(OnSearchSelectedListener callback) {
         this.callback = callback;
@@ -92,51 +83,7 @@ public class SearchFragment extends Fragment {
         EventBus.getDefault().register(this);
         bindView();
         userVisibleHint = true;
-        mSearcher = Searcher.create(ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY, ALGOLIA_INDEX_NAME);
-
-        mResultListener = new AlgoliaResultsListener() {
-            @Override
-            public void onResults(@NonNull SearchResults results, boolean isLoadingMore) {
-                if(TextUtils.isEmpty(mSearcher.getQuery().getQuery())) {
-                    mHits.setVisibility(View.INVISIBLE);
-                    return;
-                }
-                mHits.setVisibility(View.VISIBLE);
-            }
-        };
-        mSearcher.registerResultListener(mResultListener);
-        mHits.setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
-            @Override
-            public void onItemClick(RecyclerView recyclerView, int position, View v) {
-                hideKeyboard();
-                JSONObject jsonObject = mHits.get(position);
-
-                Log.d(TAG, "JSONObject: " + jsonObject.toString());
-                try {
-                    User user = new User(
-                            null,
-                            jsonObject.getString(User.FIELD_USERNAME),
-                            jsonObject.getString(User.FIELD_DISPLAYNAME),
-                            jsonObject.getString(User.FIELD_EMAIL),
-                            jsonObject.getString(User.FIELD_PHOTO_URL),
-                            null,
-                            null
-                    );
-                    // Comunica con UserFragment
-                    model.select(user);
-                    // Comunica con mainActivity
-                    callback.onUserSelected();
-                } catch (JSONException e) { e.printStackTrace(); }
-                Toast.makeText(mContext, "TODO", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void hideKeyboard() {
-        try {
-            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
-        } catch (Exception e) { e.printStackTrace(); }
+        subscribeToSearcher();
     }
 
     @Override
@@ -156,7 +103,7 @@ public class SearchFragment extends Fragment {
     public void onResume() {
         super.onResume();
         //Highlight the selected item has been done by NavigationView
-        ((MainActivity)getActivity()).setNavItemChecked(4);
+        ((MainActivity)getActivity()).setNavItemChecked(2);
     }
 
     @Override
@@ -177,7 +124,6 @@ public class SearchFragment extends Fragment {
     @Override
     public boolean getUserVisibleHint() { return userVisibleHint; }
 
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
@@ -185,18 +131,57 @@ public class SearchFragment extends Fragment {
         mSearcher.search();
 
         final MenuItem itemSearch = menu.findItem(R.id.action_search);
-        searchBox = (SearchBox) itemSearch.getActionView();
-        ((SearchBox) searchBox).disableFullScreen();
+        SearchBox searchBox = (SearchBox) itemSearch.getActionView();
+        searchBox.disableFullScreen();
         itemSearch.expandActionView(); // open SearchBar on startup
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     private void bindView(){
         mHits = getView().findViewById(R.id.hits);
-        mPictureHit = getView().findViewById(R.id.imageView2);
-        mEmailHit = getView().findViewById(R.id.user_email);
-        mUserNameHit = getView().findViewById(R.id.user_name);
+    }
 
+    private void subscribeToSearcher() {
+        mSearcher = Searcher.create(ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY, ALGOLIA_INDEX_NAME);
+
+        mResultListener = new AlgoliaResultsListener() {
+            @Override
+            public void onResults(@NonNull SearchResults results, boolean isLoadingMore) {
+                if(TextUtils.isEmpty(mSearcher.getQuery().getQuery())) {
+                    mHits.setVisibility(View.INVISIBLE);
+                    return;
+                }
+                mHits.setVisibility(View.VISIBLE);
+            }
+        };
+        mSearcher.registerResultListener(mResultListener);
+        mHits.setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClick(RecyclerView recyclerView, int position, View v) {
+                hideKeyboard();
+                JSONObject json = mHits.get(position);
+                Log.d(TAG, "JSONObject: " + json.toString());
+                User user = new User(
+                        json.optString(User.FIELD_UID, null),
+                        json.optString(User.FIELD_USERNAME, null),
+                        json.optString(User.FIELD_DISPLAYNAME, null),
+                        json.optString(User.FIELD_EMAIL, null),
+                        json.optString(User.FIELD_PHOTO_URL, null),
+                        json.optString(User.FIELD_TLFNO, null),
+                        json.optString(User.FIELD_SEX, null),
+                        json.optLong(User.FIELD_LAST_LOGIN));
+                model.select(user);
+                callback.onUserSelected();
+                Toast.makeText(mContext, "TODO", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void hideKeyboard() {
+        try {
+            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @Subscribe

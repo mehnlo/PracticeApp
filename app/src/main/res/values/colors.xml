@@ -13,4 +13,5 @@
     <color name="material_grey_800" tools:override="true">#424242</color>
     <color name="solidCircle">#AAFFFFFF</color>
     <color name="circleBorder">#50FFFFFF</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.example.com.practiceapp.models.User;
 import android.example.com.practiceapp.utilities.GlideApp;
 import android.example.com.practiceapp.utilities.OnSearchSelectedListener;
-import android.example.com.practiceapp.viewmodel.MainActivityViewModel;
 import android.example.com.practiceapp.viewmodel.UserViewModel;
 import android.net.Uri;
 import android.os.Build;
@@ -49,7 +48,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
@@ -66,7 +64,7 @@ public class MainActivity extends AppCompatActivity
         OnSearchSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int RC_SING_IN = 9001;
+    private static final int RC_SIGN_IN = 9001;
     private static final int MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 88;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
     public static final String MAIN_FRAGMENT = "MAIN_FRAGMENT";
@@ -86,17 +84,14 @@ public class MainActivity extends AppCompatActivity
     private String mCurrentPhotoPath;
     private Uri mPhotoUri;
 
-    private MainActivityViewModel mViewModel;
     private UserViewModel model;
-    private User userSigned;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_drawer);
+        setContentView(R.layout.activity_main);
         initDrawer();
         // View model
-        mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
         model = ViewModelProviders.of(this).get(UserViewModel.class);
         model.getUserSelected();
         // Enable Firestore logging
@@ -118,11 +113,169 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         // Start sign in if necessary
         if (shouldStartSignIn()) {
-            Log.d(TAG, "onStart: shouldStartSignIn");
             startSignIn();
             return;
         }
-        initUser();
+        saveUser();
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDreawerToggle.syncState();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "onBackPressed: pila: " + getSupportFragmentManager().getBackStackEntryCount());
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if(resultCode == RESULT_OK) {
+                galleryAddPic();
+                //setPic();
+                Intent intentToPostActivity = new Intent(MainActivity.this, PostActivity.class);
+                intentToPostActivity.putExtra(Intent.EXTRA_TEXT, mCurrentPhotoPath);
+                intentToPostActivity.putExtra("photoUri", mPhotoUri.toString());
+
+                startActivity(intentToPostActivity);
+            }
+        } else if (requestCode == RC_SIGN_IN) {
+            model.setIsSigningIn(false);
+            saveUser();
+            if (resultCode != RESULT_OK && shouldStartSignIn()) {
+                startSignIn();
+            }
+        }
+        
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (id == R.id.nav_home) {
+            if (fragmentManager.findFragmentByTag(MAIN_FRAGMENT) == null) { // First Time
+                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .commit();
+            } else if (!fragmentManager.findFragmentByTag(MAIN_FRAGMENT).getUserVisibleHint()) {
+                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .addToBackStack(MAIN_FRAGMENT)
+                        .commit();
+            }
+        } else if (id == R.id.nav_profile) {
+            model.select(model.getUserSigned().getValue());
+            if (fragmentManager.findFragmentByTag(USER_FRAGMENT) == null) { // First Time
+                fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .addToBackStack(USER_FRAGMENT)
+                        .commit();
+            } else if (!fragmentManager.findFragmentByTag(USER_FRAGMENT).getUserVisibleHint()) { // Other times
+                fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .addToBackStack(USER_FRAGMENT)
+                        .commit();
+            }
+        } else if (id == R.id.nav_search) {
+            if (fragmentManager.findFragmentByTag(SEARCH_FRAGMENT) == null) { // First time
+                fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .addToBackStack(SEARCH_FRAGMENT)
+                        .commit();
+            } else if (!fragmentManager.findFragmentByTag(SEARCH_FRAGMENT).getUserVisibleHint()) { // Other times
+                fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .addToBackStack(SEARCH_FRAGMENT)
+                        .commit();
+            }
+        } else if (id == R.id.nav_invite) {
+            // TODO(2) request permissions to read contacts
+            showTodoToast();
+        }
+
+        item.setChecked(true);
+        // Set the action bar title
+        setTitle(item.getTitle());
+        // Close the navigation drawer        
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setNavItemChecked(0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE: {
+                // If request is cancelled, the result arrays are empty
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // The permission was granted!
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    // Ensure that there's a camera activity to handle the intent
+                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                        // Create the File where the photo should go
+                        File photoFile = null;
+                        try {
+                            photoFile = createImageFile();
+                        } catch (IOException e) {
+                            // Error occurred while creating the File
+                            Log.w(TAG, "onRequestPermissionsResult: ", e.fillInStackTrace());
+                        }
+                        // Continue only if the File was successfully created
+                        if (photoFile != null) {
+                            mPhotoUri = FileProvider.getUriForFile(this,
+                                    "android.example.com.fileprovider",
+                                    photoFile);
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
+                            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                        }
+                    } else {
+                        Log.w(TAG, "El usuario no tiene camara");
+                    }
+                } else {
+                    Toast.makeText(this, "Permission for write storage not granted.", Toast.LENGTH_SHORT).show();
+                    finish();
+                    // The permission was denied, so we can show a message why we can't run the app
+                    // and then close the app
+                }
+            }
+            // Other permissions could go down here
+        }
+    }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        if (fragment instanceof SearchFragment) {
+            searchFragment = (SearchFragment) fragment;
+            searchFragment.setOnSearchSelectedListener(this);
+        }
+    }
+
+    @Override
+    public void onUserSelected() {
+        // The user selected the email from the SearchFragment
+        // Do something here to display that user detail
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
+                .addToBackStack(null)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit();
     }
 
     private void initDrawer() {
@@ -166,50 +319,58 @@ public class MainActivity extends AppCompatActivity
         mNavHeaderiv = headerView.findViewById(R.id.nav_header_iv);
     }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDreawerToggle.syncState();
-    }
-
-    @Override
-    public void onBackPressed() {
-        Log.d(TAG, "onBackPressed: pila: " + getSupportFragmentManager().getBackStackEntryCount());
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            if(resultCode == RESULT_OK) {
-                Log.d(TAG, "onActivityResult() ok");
-                galleryAddPic();
-                //setPic();
-                Intent intentToPostActivity = new Intent(MainActivity.this, PostActivity.class);
-                intentToPostActivity.putExtra(Intent.EXTRA_TEXT, mCurrentPhotoPath);
-                intentToPostActivity.putExtra("photoUri", mPhotoUri.toString());
-
-                startActivity(intentToPostActivity);
-            }
-        } else if (requestCode == RC_SING_IN) {
-            mViewModel.setIsSigningIn(false);
-            saveUser();
-
-            if (resultCode != RESULT_OK && shouldStartSignIn()) {
-                startSignIn();
-            }
-        }
-        
-    }
-
     private void saveUser() {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account != null) {
+            saveSharedPreferences(account);
+
+            mNavHeaderTitle.setText(account.getDisplayName());
+            mNavHeaderSubtitle.setText(account.getEmail());
+            GlideApp.with(this)
+                    .load(account.getPhotoUrl())
+                    .circleCrop()
+                    .into(mNavHeaderiv);
+
+            User userSaved = new User(null,
+                    null,
+                    account.getDisplayName(),
+                    account.getEmail(),
+                    account.getPhotoUrl().toString(),
+                    null,
+                    null,
+                    null);
+
+            model.saveUser(userSaved);
+        } else {
+            initUser();
+        }
+    }
+
+    private void initUser(){
+        User userSaved = loadSharedPreferences();
+        model.setUserSigned(userSaved);
+        model.select(userSaved);
+        Uri uri = Uri.parse(userSaved.getPhotoUrl());
+        if (!(TextUtils.isEmpty(userSaved.getEmail()) && TextUtils.isEmpty(userSaved.getDisplayName()) && TextUtils.isEmpty(userSaved.getPhotoUrl()))) {
+            mNavHeaderTitle.setText(userSaved.getDisplayName());
+            mNavHeaderSubtitle.setText(userSaved.getEmail());
+            GlideApp.with(this)
+                    .load(uri)
+                    .circleCrop()
+                    .into(mNavHeaderiv);
+        }
+    }
+
+    private User loadSharedPreferences() {
+        SharedPreferences prefs = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
+        String email = prefs.getString(getString(R.string.account_email_key), "");
+        String displayName = prefs.getString(getString(R.string.account_name_key), "");
+        String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
+
+        return new User(null, null, displayName, email, photoUri, null ,null, null);
+    }
+
+    private void saveSharedPreferences(GoogleSignInAccount account) {
         SharedPreferences sharedPreferences = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(getString(R.string.account_email_key), account.getEmail());
@@ -218,25 +379,15 @@ public class MainActivity extends AppCompatActivity
         editor.putLong(getString(R.string.account_creation_date_key), FirebaseAuth.getInstance().getCurrentUser().getMetadata().getCreationTimestamp());
         editor.putLong(getString(R.string.account_last_sign_in_key), FirebaseAuth.getInstance().getCurrentUser().getMetadata().getLastSignInTimestamp());
         editor.apply();
-        mNavHeaderTitle.setText(account.getDisplayName());
-        mNavHeaderSubtitle.setText(account.getEmail());
-        GlideApp.with(this)
-                .load(account.getPhotoUrl())
-                .circleCrop()
-                .into(mNavHeaderiv);
-        userSigned = new User(null, null, account.getDisplayName(), account.getEmail(), account.getPhotoUrl().toString(), null, null);
-        model.setUserSigned(userSigned);
-        model.select(userSigned);
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference ref = db.collection("users").document(account.getEmail());
-        ref.set(userSigned.toMap());
     }
 
     private boolean shouldStartSignIn() {
-        return (!mViewModel.isIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
+        Log.d(TAG, "shouldStartSignIn: " + (!model.isIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null) );
+        return (!model.isIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
     }
 
     private Intent buildSignInIntent() {
+        Log.d(TAG, "buildSignInIntent()");
         AuthMethodPickerLayout customLayout = new AuthMethodPickerLayout
                 .Builder(R.layout.auth_method_picker)
                 .setGoogleButtonId(R.id.google_signin_button)
@@ -253,8 +404,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void startSignIn() {
-        startActivityForResult(buildSignInIntent(), RC_SING_IN);
-        mViewModel.setIsSigningIn(true);
+        Log.d(TAG, "startSignIn()");
+        startActivityForResult(buildSignInIntent(), RC_SIGN_IN);
+        model.setIsSigningIn(true);
     }
 
     private void hideKeyboard() {
@@ -262,74 +414,6 @@ public class MainActivity extends AppCompatActivity
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        if (id == R.id.nav_home) {
-            if (fragmentManager.findFragmentByTag(MAIN_FRAGMENT) == null) { // First Time
-                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .commit();
-            } else if (!fragmentManager.findFragmentByTag(MAIN_FRAGMENT).getUserVisibleHint()) {
-                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(MAIN_FRAGMENT)
-                        .commit();
-            }
-        } else if (id == R.id.nav_profile) {
-            model.select(userSigned);
-            if (fragmentManager.findFragmentByTag(USER_FRAGMENT) == null) { // First Time
-                fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(USER_FRAGMENT)
-                        .commit();
-            } else if (!fragmentManager.findFragmentByTag(USER_FRAGMENT).getUserVisibleHint()) { // Other times
-                fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(USER_FRAGMENT)
-                        .commit();
-            }
-        } else if (id == R.id.nav_search) {
-            if (fragmentManager.findFragmentByTag(SEARCH_FRAGMENT) == null) { // First time
-                fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(SEARCH_FRAGMENT)
-                        .commit();
-            } else if (!fragmentManager.findFragmentByTag(SEARCH_FRAGMENT).getUserVisibleHint()) { // Other times
-                fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(SEARCH_FRAGMENT)
-                        .commit();
-            }
-        } else if (id == R.id.nav_settings) {
-            Toast.makeText(MainActivity.this, R.string.action_settings, Toast.LENGTH_SHORT).show();
-            Intent intentToStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(intentToStartSettingsActivity);
-        } else if (id == R.id.nav_invite) {
-            // TODO(2) request permissions to read contacts
-            showTodoToast();
-        } else if (id == R.id.nav_sign_out) {
-            Toast.makeText(MainActivity.this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
-            signOut(MainActivity.this);
-            startSignIn();
-        }
-
-        item.setChecked(true);
-        // Set the action bar title
-        setTitle(item.getTitle());
-        // Close the navigation drawer        
-        mDrawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setNavItemChecked(0);
     }
 
     public void setNavItemChecked (int id) {
@@ -379,66 +463,6 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this, permissionsWeNeed, MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
         }
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE: {
-                // If request is cancelled, the result arrays are empty
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // The permission was granted!
-                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    // Ensure that there's a camera activity to handle the intent
-                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        // Create the File where the photo should go
-                        File photoFile = null;
-                        try {
-                            photoFile = createImageFile();
-                        } catch (IOException e) {
-                            // Error occurred while creating the File
-                            Log.w(TAG, "onRequestPermissionsResult: ", e.fillInStackTrace());
-                        }
-                        // Continue only if the File was successfully created
-                        if (photoFile != null) {
-                            mPhotoUri = FileProvider.getUriForFile(this,
-                                    "android.example.com.fileprovider",
-                                    photoFile);
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
-                            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                        }
-                    } else {
-                        Log.w(TAG, "El usuario no tiene camara");
-                    }
-                } else {
-                    Toast.makeText(this, "Permission for write storage not granted.", Toast.LENGTH_SHORT).show();
-                    finish();
-                    // The permission was denied, so we can show a message why we can't run the app
-                    // and then close the app
-                }
-            }
-            // Other permissions could go down here
-        }
-    }
-
-    private void initUser(){
-        SharedPreferences prefs = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
-        String email = prefs.getString(getString(R.string.account_email_key), "");
-        String username = prefs.getString(getString(R.string.account_name_key), "");
-        String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
-        userSigned = new User(null, username, null, email, photoUri, null ,null);
-        model.setUserSigned(userSigned);
-        model.select(userSigned);
-        Uri uri = Uri.parse(photoUri);
-        if (!(TextUtils.isEmpty(email) && TextUtils.isEmpty(username) && TextUtils.isEmpty(photoUri))) {
-            mNavHeaderTitle.setText(username);
-            mNavHeaderSubtitle.setText(email);
-            GlideApp.with(this)
-                    .load(uri)
-                    .circleCrop()
-                    .into(mNavHeaderiv);
-        }
-    }
    
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -469,6 +493,7 @@ public class MainActivity extends AppCompatActivity
     private void showTodoToast() {
         Toast.makeText(this, "TODO: Implement", Toast.LENGTH_SHORT).show();
     }
+
     public void signOut(View view) {
         Toast.makeText(this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
         signOut(MainActivity.this);
@@ -486,24 +511,6 @@ public class MainActivity extends AppCompatActivity
     
     private Task<Void> signOutIdps(@NonNull Context context) {
         return GoogleSignIn.getClient(context, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut();
-    }
-
-    @Override
-    public void onAttachFragment(Fragment fragment) {
-        if (fragment instanceof SearchFragment) {
-            searchFragment = (SearchFragment) fragment;
-            searchFragment.setOnSearchSelectedListener(this);
-        }
-    }
-
-    @Override
-    public void onUserSelected() {
-        // The user selected the email from the SearchFragment
-        // Do something here to display that user detail
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
-                .addToBackStack(null)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit();
     }
 
     public void showOptions(View view) {

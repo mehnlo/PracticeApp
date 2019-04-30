@@ -24,12 +24,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.firestore.FirebaseFirestore;
-
 public class EditProfileFragment extends Fragment {
 
     private Context context;
-    private FirebaseFirestore db;
     private ImageView profilePic;
     private EditText name;
     private EditText username;
@@ -95,14 +92,11 @@ public class EditProfileFragment extends Fragment {
 
     private void subscribeToModel() {
         UserViewModel model = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
-        model.getUserSelected().observe(this, new Observer<User>() {
+        model.getUserSigned().observe(this, new Observer<User>() {
             @Override
             public void onChanged(@Nullable User user) {
                 if (user != null) {
                     updateUI(user);
-//                    db = FirebaseFirestore.getInstance();
-//                    String documentPath = "users/" + user.getEmail();
-//                    db.collection(documentPath);
                 }
             }
         });

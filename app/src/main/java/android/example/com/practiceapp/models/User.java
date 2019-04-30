@@ -17,31 +17,43 @@ public class User {
     public static final String FIELD_DISPLAYNAME = "displayName";
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_PHOTO_URL = "photoUrl";
+    public static final String FIELD_TLFNO = "tlfNo";
+    public static final String FIELD_SEX = "sex";
     public static final String FIELD_LAST_LOGIN = "lastLogin";
-    public static final String FIELD_PHOTOS = "photos";
 
     private String uid;
     private String username;
     private String displayName;
     private String email;
     private String photoUrl;
+    private String tlfNo;
+    private String sex;
     private Long lastLogin;
-    private Photo[] photos;
 
     public User(){
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User (String uid, String username, String displayName, String email, String photoUrl, Long lastLogin, Photo[] photos) {
+    public User (String uid, String username, String displayName, String email, String photoUrl, String tlfNo, String sex, Long lastLogin ) {
         this.uid = uid;
         this.username = username;
         this.displayName = displayName;
         this.email = email;
         this.photoUrl = photoUrl;
+        this.tlfNo = tlfNo;
+        this.sex = sex;
         this.lastLogin = lastLogin;
-        this.photos = photos;
     }
-
+    public void setUser(User user) {
+        uid = user.uid;
+        username = user.username;
+        displayName = user.displayName;
+        email = user.email;
+        photoUrl = user.photoUrl;
+        tlfNo = user.tlfNo;
+        sex = user.sex;
+        lastLogin = user.lastLogin;
+    }
     public String getUid() {
         return uid;
     }
@@ -90,14 +102,6 @@ public class User {
         this.lastLogin = lastLogin;
     }
 
-    public Photo[] getPhotos() {
-        return photos;
-    }
-
-    public void setPhotos(Photo[] photos) {
-        this.photos = photos;
-    }
-
     @Override
     public String toString() {
         return "User{" +
@@ -106,8 +110,9 @@ public class User {
                 ", displayName='" + displayName + '\'' +
                 ", email='" + email + '\'' +
                 ", photoUrl='" + photoUrl + '\'' +
+                ", tlfNo='" + tlfNo + '\'' +
+                ", sex='" + sex + '\'' +
                 ", lastLogin=" + lastLogin +
-                ", photos=" + Arrays.toString(photos) +
                 '}';
     }
 
@@ -119,8 +124,9 @@ public class User {
         if (displayName != null) result.put(FIELD_DISPLAYNAME, displayName);
         if (email != null) result.put(FIELD_EMAIL, email);
         if (photoUrl != null) result.put(FIELD_PHOTO_URL, photoUrl);
-        if (lastLogin != null) result.put(FIELD_LAST_LOGIN, FieldValue.serverTimestamp());
-        if (photos != null) result.put(FIELD_PHOTOS, photos);
+        if (tlfNo != null) result.put(FIELD_TLFNO, tlfNo);
+        if (sex != null) result.put(FIELD_SEX, sex);
+        result.put(FIELD_LAST_LOGIN, FieldValue.serverTimestamp());
         return result;
     }
 }

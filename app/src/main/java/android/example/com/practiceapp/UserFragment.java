@@ -3,6 +3,7 @@ package android.example.com.practiceapp;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.res.Resources;
 import android.example.com.practiceapp.adapter.SectionsPagerAdapter;
 import android.example.com.practiceapp.models.Post;
 import android.example.com.practiceapp.models.User;
@@ -49,15 +50,8 @@ public class UserFragment extends Fragment {
 
     private Context context;
     private boolean userVisibleHint = true;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private DocumentReference mCountersRef;
     private ViewPager mViewPager;
     private TabLayout mTabLayout;
-
-    private final Post mPost = new Post();
-
-    private ListenerRegistration counters;
-
     private ImageView mProfilePic;
     private TextView mProfileName;
     private TextView mProfileEmail;
@@ -114,39 +108,10 @@ public class UserFragment extends Fragment {
     @Override
     public boolean getUserVisibleHint() { return userVisibleHint; }
 
-    private void initListeners() {
-        counters = mCountersRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen:error", e);
-                    return;
-                } if (snapshot.contains("posts")) {
-                    mPostCount.setText(snapshot.get("posts").toString());
-                } if (snapshot.contains("followers")) {
-                    mFollowersCount.setText(snapshot.get("followers").toString());
-                } if (snapshot.contains("follows")) {
-                    mFollowsCount.setText(snapshot.get("follows").toString());
-                }
-            }
-        });
-    }
-
     private void stopListener() {
         // Stop listening to changes
         Log.i(TAG, "stopListener()");
-        counters.remove();
         mTabLayout.clearOnTabSelectedListeners();
-    }
-
-    private void setUpHeader() {
-        Uri uri = Uri.parse(mPost.getUser().getPhotoUrl());
-        GlideApp.with(context)
-                .load(uri)
-                .circleCrop()
-                .into(mProfilePic);
-        mProfileName.setText(mPost.getUser().getUsername());
-        mProfileEmail.setText(mPost.getUser().getEmail());
     }
 
     private void subscribeToModel() {
@@ -155,11 +120,7 @@ public class UserFragment extends Fragment {
             @Override
             public void onChanged(@Nullable User user) {
                 if (user != null) {
-                    mPost.setUser(user);
-                    String countersPath = "/counters/" + mPost.getUser().getEmail();
-                    mCountersRef = db.document(countersPath);
-                    setUpHeader();
-                    initListeners();
+                    setUpHeader(user);
                 } else {
                     Log.d(TAG, "onChanged: El usuario es nulo");
                 }
@@ -171,6 +132,7 @@ public class UserFragment extends Fragment {
                 if (s != null) {
                     View.OnClickListener action = null;
                     if (s.equals(EDIT_PROFILE)) {
+                        mProfileButton.setBackground(getResources().getDrawable(R.drawable.button));
                         mProfileButton.setText(getString(R.string.user_fragment_edit_profile));
                         action = new View.OnClickListener() {
                             @Override
@@ -180,21 +142,24 @@ public class UserFragment extends Fragment {
                             }
                         };
                     } else if (s.equals(FOLLOW)) {
+                        mProfileButton.setBackground(getResources().getDrawable(R.drawable.button));
                         mProfileButton.setText(getString(R.string.user_fragment_follow_profile));
                         action = new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 showToast("Follow");
-                                followUser(model.getUserSigned().getValue().getEmail());
+                                model.followUser();
                             }
                         };
                     } else if (s.equals(UNFOLLOW)) {
+                        mProfileButton.setBackground(getResources().getDrawable(R.drawable.btn_gradient));
+
                         mProfileButton.setText(getString(R.string.user_fragment_unfollow_profile));
                         action = new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 showToast("Unfollow");
-                                unfollowUser(model.getUserSigned().getValue().getEmail());
+                                model.unollowUser();
                             }
                         };
                     }
@@ -202,59 +167,38 @@ public class UserFragment extends Fragment {
                 }
             }
         });
-    }
-
-    private void followUser(String emailSigned) {
-        Map<String, Object> data = new HashMap<>();
-        DocumentReference followingRef = db.collection("following/" + emailSigned + "/userFollowing").document(mPost.getUser().getEmail());
-        DocumentReference followersRef = db.collection("followers/" + mPost.getUser().getEmail() + "/userFollowing").document(emailSigned);
-        DocumentReference countFollowsRef = db.collection("counters").document(emailSigned);
-        DocumentReference countFollowersRef = db.collection("counters").document(mPost.getUser().getEmail());
-        // Get a new write batch
-        WriteBatch batch = db.batch();
-        batch.set(followingRef, data);
-        batch.set(followersRef, data);
-        batch.update(countFollowsRef, "follows", FieldValue.increment(1));
-        batch.update(countFollowersRef, "followers", FieldValue.increment(1));
-        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+        model.getPostCount().observe(this, new Observer<String>() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "followUser success");
-                } else {
-                    Log.w(TAG, "followUser failed with: ", task.getException());
-                }
+            public void onChanged(@Nullable String s) {
+                if (s == null) mPostCount.setText(String.valueOf(0));
+                mPostCount.setText(s);
             }
         });
-
-        // TODO(1) Send notification to the userSelected
-
-    }
-
-    private void unfollowUser(String emailSigned) {
-        Map<String, Object> data = new HashMap<>();
-        DocumentReference followingRef = db.collection("following/" + emailSigned + "/userFollowing").document(mPost.getUser().getEmail());
-        DocumentReference followersRef = db.collection("followers/" + mPost.getUser().getEmail() + "/userFollowers").document(emailSigned);
-        DocumentReference countFollowsRef = db.collection("counters").document(emailSigned);
-        DocumentReference countFollowersRef = db.collection("counters").document(mPost.getUser().getEmail());
-        // Get a new write batch
-        WriteBatch batch = db.batch();
-        batch.delete(followingRef);
-        batch.delete(followersRef);
-        batch.update(countFollowsRef, "follows", FieldValue.increment(-1));
-        batch.update(countFollowersRef, "followers", FieldValue.increment(-1));
-        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+        model.getFollowersCount().observe(this, new Observer<String>() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "unfollowUser success");
-                } else {
-                    Log.w(TAG, "unfollowUser failed with: ", task.getException());
-                }
+            public void onChanged(@Nullable String s) {
+                if (s == null) mFollowersCount.setText(String.valueOf(0));
+                mFollowersCount.setText(s);
             }
         });
+        model.getFollowsCount().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable String s) {
+                if (s == null) mFollowsCount.setText(String.valueOf(0));
+                mFollowsCount.setText(s);
+            }
+        });
+    }
 
-     }
+    private void setUpHeader(User user) {
+        Uri uri = Uri.parse(user.getPhotoUrl());
+        GlideApp.with(context)
+                .load(uri)
+                .circleCrop()
+                .into(mProfilePic);
+        mProfileName.setText(user.getUsername());
+        mProfileEmail.setText(user.getEmail());
+    }
 
     private void editProfile() {
         getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.content_main, new EditProfileFragment(), EDIT_PROFILE_FRAGMENT)
