@@ -35,16 +35,19 @@
                     android:scaleType="centerInside"
                     android:background="@drawable/circle"
                     android:contentDescription="@string/iv_content_description_user_profile"
+                    app:srcCompat="@mipmap/ic_launcher_round"
                     tools:srcCompat="@tools:sample/avatars[2]" />
 
             </RelativeLayout>
+
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/action_edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignEnd="@+id/imgUser"
                 android:layout_alignBottom="@+id/imgUser"
-                app:srcCompat="@drawable/ic_edit"/>
+                android:onClick="onPickPhoto"
+                app:srcCompat="@drawable/ic_edit" />
         </RelativeLayout>
 
         <LinearLayout
@@ -174,8 +177,7 @@
                     <Spinner
                         android:id="@+id/sp_sex"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:entries="@array/sex_array" />
+                        android:layout_height="wrap_content" />
 
                     <View
                         android:layout_width="match_parent"

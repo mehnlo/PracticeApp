@@ -169,7 +169,7 @@ public class SearchFragment extends Fragment {
                         json.optString(User.FIELD_PHOTO_URL, null),
                         json.optString(User.FIELD_TLFNO, null),
                         json.optString(User.FIELD_SEX, null),
-                        json.optLong(User.FIELD_LAST_LOGIN));
+                        null);
                 model.select(user);
                 callback.onUserSelected();
                 Toast.makeText(mContext, "TODO", Toast.LENGTH_SHORT).show();

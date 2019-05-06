@@ -35,6 +35,7 @@ import java.util.Objects;
 
 public class PostActivity extends AppCompatActivity {
     private static final String TAG = PostActivity.class.getSimpleName();
+    public static final String PHOTO_URI = "photoUri";
     private ImageView mPostPhoto;
     private EditText mPostTitle;
     private String mPhotoPath;
@@ -57,7 +58,7 @@ public class PostActivity extends AppCompatActivity {
            //Log.d(TAG, "onCreate: " + mPhotoPath);
         }
         if (intentThatStartedPostActivity.hasExtra("photoUri")) {
-            mPhotoUri = Uri.parse(intentThatStartedPostActivity.getStringExtra("photoUri"));
+            mPhotoUri = Uri.parse(intentThatStartedPostActivity.getStringExtra(PHOTO_URI));
             Log.d(TAG, "onCreate: mPhotoUri" + mPhotoUri.toString());
         }
     }
@@ -150,7 +151,7 @@ public class PostActivity extends AppCompatActivity {
         uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                double progress = (100.0 + taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
                 Log.d(TAG, progress + "% done");
             }
         }).addOnPausedListener(new OnPausedListener<UploadTask.TaskSnapshot>() {
@@ -184,7 +185,6 @@ public class PostActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     hideProgressLoading();
                     Uri downloadUri = task.getResult();
-                    assert downloadUri != null;
                     Log.d(TAG, "onComplete: " + downloadUri.toString());
                     Photo photo = new Photo();
                     photo.setTitle(mPostTitle.getText().toString());

@@ -21,12 +21,11 @@
             algolia:layout_constraintEnd_toEndOf="@+id/user_name"
             algolia:layout_constraintStart_toEndOf="@+id/user_name">
 
-            <ImageView
+            <android.example.com.practiceapp.views.AvatarView
                 android:id="@+id/imageView2"
                 android:layout_width="@android:dimen/app_icon_size"
                 android:layout_height="@android:dimen/app_icon_size"
-                android:src="@drawable/placeholder_video"
-                algolia:attribute='@{"photoUrl"}'
+                android:scaleType="fitCenter"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

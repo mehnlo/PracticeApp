@@ -4,6 +4,9 @@ apply plugin: 'com.android.application'
 android {
 
     compileSdkVersion 28
+
+    dataBinding.enabled true
+
     defaultConfig {
         applicationId "android.example.com.practiceapp"
         minSdkVersion 19
@@ -14,7 +17,6 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         android.defaultConfig.vectorDrawables.useSupportLibrary = true
         resConfigs "en", "es"
-        dataBinding.enabled true
     }
     buildTypes {
         release {
@@ -52,6 +54,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore:18.2.0'
     // Firebase Storage
     implementation 'com.google.firebase:firebase-storage:16.1.0'
+    // Firebase Functions
+    implementation 'com.google.firebase:firebase-functions:16.3.0'
     // FirebaseUI
     implementation 'com.firebaseui:firebase-ui-firestore:4.3.2'
     implementation 'com.firebaseui:firebase-ui-auth:4.3.2'
@@ -65,11 +69,16 @@ dependencies {
     implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
     // Algolia
     implementation 'com.algolia:algoliasearch-android:3.27.0'
-    implementation 'com.algolia:instantsearch-android:1.15.2'
-    implementation 'com.algolia:instantsearch-android-core:1.15.2'
+    implementation 'com.algolia:instantsearch-android:1.+'
+    implementation 'com.algolia:instantsearch-android-core:1.+'
     // https://mvnrepository.com/artifact/org.greenrobot/eventbus
     implementation group: 'org.greenrobot', name: 'eventbus', version: '3.1.1'
-
+    // Gson
+    implementation 'com.google.code.gson:gson:2.8.5'
+    // Dagger 2
+    implementation 'com.google.dagger:dagger-android:2.22.1'
+    implementation 'com.google.dagger:dagger-android-support:2.22.1'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.22.1'
     implementation 'com.android.support:multidex:1.0.3'
 
 

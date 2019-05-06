@@ -1,6 +1,7 @@
 package android.example.com.practiceapp.models;
 
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.IgnoreExtraProperties;
@@ -28,13 +29,13 @@ public class User {
     private String photoUrl;
     private String tlfNo;
     private String sex;
-    private Long lastLogin;
+    private Timestamp lastLogin;
 
     public User(){
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User (String uid, String username, String displayName, String email, String photoUrl, String tlfNo, String sex, Long lastLogin ) {
+    public User (String uid, String username, String displayName, String email, String photoUrl, String tlfNo, String sex, Timestamp lastLogin ) {
         this.uid = uid;
         this.username = username;
         this.displayName = displayName;
@@ -94,13 +95,13 @@ public class User {
         this.photoUrl = photoUrl;
     }
 
-    public Long getLastLogin() {
-        return lastLogin;
-    }
+    public String getTlfNo() { return tlfNo; }
 
-    public void setLastLogin(Long lastLogin) {
-        this.lastLogin = lastLogin;
-    }
+    public void setTlfNo(String tlfNo) { this.tlfNo = tlfNo; }
+
+    public String getSex() { return sex; }
+
+    public void setSex(String sex) { this.sex = sex; }
 
     @Override
     public String toString() {
@@ -112,7 +113,7 @@ public class User {
                 ", photoUrl='" + photoUrl + '\'' +
                 ", tlfNo='" + tlfNo + '\'' +
                 ", sex='" + sex + '\'' +
-                ", lastLogin=" + lastLogin +
+                ", lastLogin=" + lastLogin.toString() +
                 '}';
     }
 

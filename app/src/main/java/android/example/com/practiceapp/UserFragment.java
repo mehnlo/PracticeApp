@@ -17,6 +17,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -159,7 +160,7 @@ public class UserFragment extends Fragment {
                             @Override
                             public void onClick(View view) {
                                 showToast("Unfollow");
-                                model.unollowUser();
+                                model.unfollowUser();
                             }
                         };
                     }
@@ -191,13 +192,15 @@ public class UserFragment extends Fragment {
     }
 
     private void setUpHeader(User user) {
-        Uri uri = Uri.parse(user.getPhotoUrl());
-        GlideApp.with(context)
-                .load(uri)
-                .circleCrop()
-                .into(mProfilePic);
-        mProfileName.setText(user.getUsername());
-        mProfileEmail.setText(user.getEmail());
+        if (!TextUtils.isEmpty(user.getPhotoUrl())) {
+            Uri uri = Uri.parse(user.getPhotoUrl());
+            GlideApp.with(context)
+                    .load(uri)
+                    .circleCrop()
+                    .into(mProfilePic);
+        }
+        mProfileName.setText(!TextUtils.isEmpty(user.getDisplayName()) ? user.getDisplayName() : "");
+        mProfileEmail.setText(!TextUtils.isEmpty(user.getEmail()) ? user.getEmail() : "");
     }
 
     private void editProfile() {

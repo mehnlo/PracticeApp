@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -75,15 +76,19 @@ public class DetailPostFragment extends Fragment {
         tvDate.setText(post.getPhoto().getDate().toString());
         tvUsername.setText(post.getUser().getUsername());
         tvTitle.setText(post.getPhoto().getTitle());
-        Uri uri = Uri.parse(post.getUser().getPhotoUrl());
+
+        Uri uri = Uri.parse(post.getPhoto().getPhotoUrl());
+        GlideApp.with(this)
+                .load(uri)
+                .into(ivPhoto);
+        if (!TextUtils.isEmpty(post.getUser().getPhotoUrl())) {
+        uri = Uri.parse(post.getUser().getPhotoUrl());
         GlideApp.with(this)
                 .load(uri)
                 .circleCrop()
                 .into(ivUserProfile);
-        uri = Uri.parse(post.getPhoto().getPhotoUrl());
-        GlideApp.with(this)
-                .load(uri)
-                .into(ivPhoto);
+        }
+
     }
 
 }

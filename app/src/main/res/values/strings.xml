@@ -26,12 +26,14 @@
     <!-- - - - - - - - - - - -->
     <!--  SharedPreferences  -->
     <!-- - - - - - - - - - - -->
-    <string name="account_email_key" translatable="false">accountEmail</string>
+    <string name="account_username_key" translatable="false">accountUsername</string>
     <string name="account_name_key" translatable="false">accountName</string>
+    <string name="account_email_key" translatable="false">accountEmail</string>
     <string name="account_photo_key" translatable="false">accountPhotoUrl</string>
+    <string name="account_tlfno_key" translatable="false">accountTlfNo</string>
+    <string name="account_sex_key" translatable="false">accountSex</string>
     <string name="account_creation_date_key" translatable="false">accountCreationTimestamp</string>
     <string name="account_last_sign_in_key" translatable="false">accountLastSignIn</string>
-
     <!-- - - - - - - - - - - -->
     <!-- Used by Preferences -->
     <!-- - - - - - - - - - - -->
