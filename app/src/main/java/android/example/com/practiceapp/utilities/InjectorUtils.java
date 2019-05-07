@@ -1,19 +1,24 @@
 package android.example.com.practiceapp.utilities;
 
-import android.example.com.practiceapp.repository.UserRepository;
-import android.example.com.practiceapp.viewmodel.UserViewModelFactory;
+import android.content.Context;
+import android.example.com.practiceapp.data.PracticeAppRepository;
+import android.example.com.practiceapp.data.database.PracticeAppDatabase;
+import android.example.com.practiceapp.data.firebase.FirebaseDataSource;
+import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 
 public class InjectorUtils {
-    public static UserRepository provideRepository() {
+    private static PracticeAppRepository provideRepository(Context context) {
+        PracticeAppDatabase database = PracticeAppDatabase.getInstance(context.getApplicationContext());
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        return UserRepository.getInstance(firestore, storage);
+        FirebaseDataSource firebaseDataSource = FirebaseDataSource.getInstance(firestore, storage);
+        return PracticeAppRepository.getInstance(database.userDao(), firebaseDataSource);
     }
-    public static UserViewModelFactory provideUserViewModelFactory() {
-        UserRepository repository = provideRepository();
-        return new UserViewModelFactory(repository);
+    public static MainViewModelFactory provideUserViewModelFactory(Context context) {
+        PracticeAppRepository repository = provideRepository(context.getApplicationContext());
+        return new MainViewModelFactory(repository);
     }
 }
