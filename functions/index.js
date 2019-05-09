@@ -168,20 +168,28 @@ exports.loadFeed = functions.https.onCall((data, context) => {
                     reject(`No matching documents in following/${email}/userFollowing.`);
                 }
                 promises.push(new Promise(resolve => {
-                    // eslint-disable-next-line promise/catch-or-return
+                    // eslint-disable-next-line promise/catch-or-return,promise/no-nesting
                     db.collection(`posts/${email}/userPosts`).get().then(querySnapshot => {
                         // eslint-disable-next-line promise/always-return
                         if (querySnapshot.empty) {
                             console.log(`No matching documents in posts/${email}/userPosts`);
                             resolve();
                         }
+                        // TODO change the structure of the return object
+                        //  Object {
+                        //   author: email,
+                        //   Object {
+                        //      {doc.id},
+                        //      doc.data()
+                        //      }
+                        //  }
                         resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: email})));
                     }); // then
                 }));
                 querySnapshot.forEach(doc => {
                     // Obtain all posts of each user I am following
                     promises.push(new Promise(resolve => {
-                        // eslint-disable-next-line promise/catch-or-return
+                        // eslint-disable-next-line promise/catch-or-return,promise/no-nesting
                         db.collection(`posts/${doc.id}/userPosts`).get().then(querySnapshot => {
                             // eslint-disable-next-line promise/always-return
                             if (querySnapshot.empty) {
@@ -202,11 +210,17 @@ exports.loadFeed = functions.https.onCall((data, context) => {
         console.log(`Promises.length: ${promises.length}`);
         // eslint-disable-next-line promise/always-return,promise/catch-or-return
         await Promise.all(promises).then(values => {
-            result = JSON.stringify(values, null, '\t');
-            console.log(`Result length: ${result.length}`);
-            console.log(result);
+            let arrayFeed = [];
+            // values typeof Array(Array(Object)) values[userFollowing...[post...{}]]
+            values.forEach((userFollowing) => {
+                userFollowing.forEach((post) => {
+                    arrayFeed.push(post);
+                });
+            });
+            result = JSON.stringify(arrayFeed, null, '\t');
+            // result typeof Array(Object) result[post...{}]
         });
-        return result;
+        return {feed: result};
     }
     return getResult();
 
