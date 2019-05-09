@@ -20,55 +20,58 @@ const index = client.initIndex(ALGOLIA_INDEX_NAME);
 // [START update_index_function]
 // Triggered when a document is written to for the first time.
 exports.addFirestoreDataToAlgolia = functions.firestore
-.document('users/{userId}')
-.onCreate((snap, context) => {
-    // Get the user documents
-    const user = snap.data();
-    // Add an 'objectID' field which Algolia requires
-    user.objectID = context.params.userId;
-    return index
-      .saveObject(user)
-      .then(() => {
-        console.log(`User imported: ${user.objectID} into Algolia`);
-      }).catch(error => {
-        console.error('Error when importing user into Algolia', error);
-        process.exit(1);
-      });
-});
+    .document('users/{userId}')
+    .onCreate((snap, context) => {
+      // Get the user documents
+      const user = snap.data();
+      // Add an 'objectID' field which Algolia requires
+      user.objectID = context.params.userId;
+      return index
+          .saveObject(user)
+          // eslint-disable-next-line promise/always-return
+          .then(() => {
+            console.log(`User imported: ${user.objectID} into Algolia`);
+          }).catch(error => {
+            console.error('Error when importing user into Algolia', error);
+            process.exit(1);
+          });
+    });
 
 // Triggered when a document already exists and has any value changed.
 exports.updateFirestoreDataToAlgolia = functions.firestore
-.document('users/{userId}')
-.onUpdate((change, context) => {
-  // Get the user documents
-  const newUser = change.after.data();
-  // Add an 'objectId' field which Algolia requires
-  newUser.objectID = context.params.userId;
-  return index
-    .saveObject(newUser)
-    .then(() => {
-      console.log(`User updated: ${newUser.objectID} into Algolia`);
-    }).catch(error => {
-      console.error('Error when update user into Algolia', error);
-      process.exit(1);
+    .document('users/{userId}')
+    .onUpdate((change, context) => {
+      // Get the user documents
+      const newUser = change.after.data();
+      // Add an 'objectId' field which Algolia requires
+      newUser.objectID = context.params.userId;
+      return index
+          .saveObject(newUser)
+          // eslint-disable-next-line promise/always-return
+          .then(() => {
+            console.log(`User updated: ${newUser.objectID} into Algolia`);
+          }).catch(error => {
+            console.error('Error when update user into Algolia', error);
+            process.exit(1);
+          });
     });
-});
 // Triggered when a document with data is deleted.
 exports.deleteFirestoreDataToAlgolia = functions.firestore
-.document('users/{userId}')
-.onDelete((snap, context) => {
-  // Get Algolia's objectdID from the Firebase object Key
-  const objectID = context.params.userId;
-  // Remove the object from Algolia
-  return index.
-  deleteObject(objectID)
-  .then(() => {
-    console.log(`Firebase user: ${objectID} deleted from Algolia`);
-  }).catch(error => {
-    console.error('Error when deleting user from Algolia', error);
-    process.exit(1);
-  })
-});
+    .document('users/{userId}')
+    .onDelete((snap, context) => {
+      // Get Algolia's objectdID from the Firebase object Key
+      const objectID = context.params.userId;
+      // Remove the object from Algolia
+      return index.
+      deleteObject(objectID)
+      // eslint-disable-next-line promise/always-return
+          .then(() => {
+            console.log(`Firebase user: ${objectID} deleted from Algolia`);
+          }).catch(error => {
+            console.error('Error when deleting user from Algolia', error);
+            process.exit(1);
+          })
+    });
 // [END update_index_function]
 
 // [START get_firebase_user]
@@ -80,10 +83,10 @@ async function getFirebaseUser(req, res, next) {
 
   if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
     console.error(
-      'No Firebase ID token was passed as a Bearer token in the Authorization header.',
-      'Make sure you authorize your request by providing the following HTTP header:',
-      'Authorization: Bearer <Firebase ID Token>'
-      );
+        'No Firebase ID token was passed as a Bearer token in the Authorization header.',
+        'Make sure you authorize your request by providing the following HTTP header:',
+        'Authorization: Bearer <Firebase ID Token>'
+    );
     return res.sendStatus(403);
   }
 
@@ -143,93 +146,70 @@ app.get('/', (req, res) => {
 exports.getSearchKey = functions.https.onRequest(app);
 // [END get_algolia_user_token]
 exports.loadFeed = functions.https.onCall((data, context) => {
-  const email = context.auth.token.email || null;
-  const reads = [];
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    // Throwing an HttpsError so that the client gets the error details
-    throw new functions.https.HttpsError('failed-precondition', 'The function must be called while authenticated.');
-  }
-  return new Promise((resolve, reject) => {
+    const email = context.auth.token.email || null;
     const db = admin.firestore();
-    const users = {};
-    const following = [];
-    const posts = [];
-    // var exist = false;
-    // Obtain all users that I am following
-    db.collection(`following/${email}/userFollowing`)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        console.log(`No matching documents in following/${email}/userFollowing.`);
-        reject(`No matching documents in following/${email}/userFollowing.`);
-      }
+    let promises = [];
+    let result;
+    // Checking that the user is authenticated.
+    if (!context.auth) {
+        // Throwing an HttpsError so that the client gets the error details
+        throw new functions.https.HttpsError('failed-precondition', 'The function must be called while authenticated.');
+    }
+    function buildPromises() {
+        // eslint-disable-next-line promise/catch-or-return
+        return new Promise((resolve, reject) => {
+            // Obtain all users that I am following
+            // eslint-disable-next-line promise/catch-or-return
+            db.collection(`following/${email}/userFollowing`).get().then(querySnapshot => {
+                // eslint-disable-next-line promise/always-return
+                if (querySnapshot.empty) {
+                    console.log(`No matching documents in following/${email}/userFollowing.`);
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject(`No matching documents in following/${email}/userFollowing.`);
+                }
+                promises.push(new Promise(resolve => {
+                    // eslint-disable-next-line promise/catch-or-return
+                    db.collection(`posts/${email}/userPosts`).get().then(querySnapshot => {
+                        // eslint-disable-next-line promise/always-return
+                        if (querySnapshot.empty) {
+                            console.log(`No matching documents in posts/${email}/userPosts`);
+                            resolve();
+                        }
+                        resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: email})));
+                    }); // then
+                }));
+                querySnapshot.forEach(doc => {
+                    // Obtain all posts of each user I am following
+                    promises.push(new Promise(resolve => {
+                        // eslint-disable-next-line promise/catch-or-return
+                        db.collection(`posts/${doc.id}/userPosts`).get().then(querySnapshot => {
+                            // eslint-disable-next-line promise/always-return
+                            if (querySnapshot.empty) {
+                                console.log(`No matching documents in posts/${doc.id}/userPosts`);
+                                resolve();
+                            }
+                            resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: email})));
+                        });
+                    }));
+                }); // forEach
+                resolve(promises);
+            });
+        });
+    }
 
-      // Obtain all my posts
-      const promiseLoadMyPosts = loadPosts(db, posts, email);
-      snapshot.forEach(doc => {
-        let email = doc.id;
-        let user = doc.data();
-        let documentRef = db.doc(`posts/${doc.id}`);
-        following.push(documentRef);
-        // Obtain all posts of each user I am following
-        let promise = loadPosts(db, posts, email);
-        reads.push(promise);
-      });
+    async function getResult() {
+        await buildPromises();
+        console.log(`Promises.length: ${promises.length}`);
+        // eslint-disable-next-line promise/always-return,promise/catch-or-return
+        await Promise.all(promises).then(values => {
+            result = JSON.stringify(values, null, '\t');
+            console.log(`Result length: ${result.length}`);
+            console.log(result);
+        });
+        return result;
+    }
+    return getResult();
 
-//      db.getAll(...following).then(docs => {
-//         console.log(`${JSON.stringify(docs['userPosts'])}`);
-//         console.log(`${JSON.stringify(docs)}`); // [{"_ref":{"_firestore":{"_settings...}]
-//         console.log(`${docs[0].id}`); // agarciadk@alumnos.unex.es
-//         console.log(`docs[0].data(): ${docs[0].data()}`); // [object Object]
-//         console.log(`docs[0].data().get('title'): ${docs[0].data().get('title')}`); // error get is not a function
-//         console.log(`docs[0].data().userPosts: ${docs[0].data().userPosts}`); // undefined
-//         console.log(`docs[0].data().title: ${docs[0].data().title}`);
-//         console.log(`docs[0].data().id: ${docs[0].data().id}`); // undefined
-//         console.log(`${JSON.stringify(docs[0].data())}`); // {}
-//         console.log(`First document ${JSON.stringify(docs[0])}`); // {"_ref":{"_firestore":{"_settings...}
-//         console.log(`First document ${JSON.stringify(docs[0].userPosts)}`);
-//         console.log(`Second document ${JSON.stringify(docs[1])}`);
-//      });
-
-      reads.push(promiseLoadMyPosts);
-      Promise.all(reads).then(values => {
-        values.forEach((value) => console.log(`value: ${value}`));
-        // Sort posts using date
-        // where the first item is the most recent posts
-        // posts.sort((a, b) => {
-        //   return new admin.firestore.Timestamp(b.date._seconds, b.date._nanoseconds) - new admin.firestore.Timestamp(a.date._seconds, a.date._nanoseconds);
-        // });
-        let postsStr = JSON.stringify(posts, null, '\t');
-        console.log(`${postsStr}`);
-        resolve(postsStr);
-      });
-
-    }).catch(reason => {
-      console.error(`db.collection("users").get gets err, reason: ${reason}`);
-      reject(reason);
-    });
-  });
 });
 
-function loadPosts(db, posts, email) {
-  return new Promise((resolve) => {
-    db.collection(`posts/${email}/userPosts`)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        console.log(`No matching documents in posts/${email}/userPosts`);
-        resolve();
-      }
-      snapshot.forEach(post => {
-        let key = post.id;
-        let postData = post.data();
-        let item = {};
-        item[key] = postData;
-        // console.log(new admin.firestore.Timestamp(item[key].date._seconds, item[key].date._nanoseconds));
-        posts.push(item);
-      });
-      resolve(posts);
-    });
-  });
-}
+

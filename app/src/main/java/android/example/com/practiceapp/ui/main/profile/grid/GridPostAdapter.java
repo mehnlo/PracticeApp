@@ -3,6 +3,7 @@ package android.example.com.practiceapp.ui.main.profile.grid;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
+import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.utilities.OnPostSelectedListener;
 import android.example.com.practiceapp.ui.post.PostViewModel;
 import android.support.annotation.NonNull;
@@ -20,7 +21,7 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
 
     private ProgressBar progressBar;
     private Context context;
-    private PostViewModel model;
+    private MainViewModel model;
     private OnPostSelectedListener callback;
 
     /**
@@ -34,7 +35,7 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
         this.progressBar = progressBar;
     }
 
-    void setViewModel(PostViewModel model) {
+    void setViewModel(MainViewModel model) {
         this.model = model;
     }
 

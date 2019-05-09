@@ -5,7 +5,10 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
+import android.example.com.practiceapp.ui.main.MainViewModel;
+import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 import android.example.com.practiceapp.ui.post.PostViewModel;
+import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -56,7 +59,8 @@ public class DetailPostFragment extends Fragment {
     }
 
     private void subscribeToViewModel() {
-        PostViewModel model = ViewModelProviders.of(getActivity()).get(PostViewModel.class);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
+        MainViewModel model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
         model.getPostSelected().observe(this, post -> {
             if (post != null) {
                 changeUI(post);

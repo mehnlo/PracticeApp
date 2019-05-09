@@ -1,5 +1,6 @@
 package android.example.com.practiceapp.ui.main.profile.grid;
 
+import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.utilities.OnPostSelectedListener;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
@@ -18,10 +19,10 @@ public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnCli
     private static final String TAG = GridPostViewHolder.class.getSimpleName();
     private ImageView mImageView;
     private Post item;
-    private PostViewModel model;
+    private MainViewModel model;
     private OnPostSelectedListener callback;
 
-    GridPostViewHolder(@NonNull View itemView, PostViewModel model, OnPostSelectedListener callback) {
+    GridPostViewHolder(@NonNull View itemView, MainViewModel model, OnPostSelectedListener callback) {
         super(itemView);
         this.model = model;
         this.callback = callback;

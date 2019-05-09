@@ -1,12 +1,13 @@
 package android.example.com.practiceapp.ui.main.profile.grid;
 
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.paging.PagedList;
 import android.content.Context;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 import android.example.com.practiceapp.ui.main.detail.DetailPostFragment;
+import android.example.com.practiceapp.ui.post.PostActivity;
+import android.example.com.practiceapp.ui.post.PostViewModelFactory;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.example.com.practiceapp.utilities.OnPostSelectedListener;
 import android.example.com.practiceapp.R;
@@ -30,10 +31,6 @@ import android.widget.ProgressBar;
 
 import com.firebase.ui.firestore.SnapshotParser;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 public class GridPostFragment extends Fragment
         implements OnPostSelectedListener
@@ -48,10 +45,8 @@ public class GridPostFragment extends Fragment
     private Context context;
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
-    private FirebaseFirestore db;
-    private CollectionReference mItemsCollection;
-    private final Post mPost = new Post();
     private PostViewModel postViewModel;
+    private MainViewModel model;
 
 
     public GridPostFragment() { }
@@ -77,27 +72,18 @@ public class GridPostFragment extends Fragment
     }
 
     private void subscribeToModel() {
-        MainViewModelFactory factory = InjectorUtils.provideUserViewModelFactory(context);
-        MainViewModel model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
-        // TODO (9) Pass it out to the repository
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
+        model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
         model.getUserSelected().observe(this, user -> {
             if (user != null) {
-                db = FirebaseFirestore.getInstance();
-                mPost.setUser(user);
-                String postsPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
-                mItemsCollection = db.collection(postsPath);
-                setUpAdapter();
+                setUpAdapter(user);
             } else {
                 Log.d(TAG, "onChanged: The user is null");
             }
         });
-        postViewModel = ViewModelProviders.of(getActivity()).get(PostViewModel.class);
-        postViewModel.getPostSelected();
     }
 
-    private void setUpAdapter() {
-        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_DATE, Query.Direction.DESCENDING);
-
+    private void setUpAdapter(User user) {
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)
                 .setPrefetchDistance(PREFETCH_DISTANCE)
@@ -106,7 +92,7 @@ public class GridPostFragment extends Fragment
 
         SnapshotParser<Post> parser = snapshot -> {
             Post post = new Post();
-            post.setUser(mPost.getUser());
+            post.setUser(user);
             if (snapshot.exists()) {
                 Photo photo = snapshot.toObject(Photo.class);
                 post.setPhoto(photo);
@@ -116,12 +102,12 @@ public class GridPostFragment extends Fragment
 
         FirestorePagingOptions<Post> options = new FirestorePagingOptions.Builder<Post>()
                 .setLifecycleOwner(this)
-                .setQuery(baseQuery, config, parser)
+                .setQuery(model.getBaseQuery(), config, parser)
                 .build();
 
         GridPostAdapter adapter = new GridPostAdapter(options, context, mProgressBar);
         adapter.setCallback(GridPostFragment.this);
-        adapter.setViewModel(postViewModel);
+        adapter.setViewModel(model);
         mRecyclerView.setLayoutManager(new GridLayoutManager(context, SPAN_COUNT));
         mRecyclerView.setAdapter(adapter);
     }

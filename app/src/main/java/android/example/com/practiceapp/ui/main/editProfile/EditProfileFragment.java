@@ -20,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -92,10 +93,18 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_update) {
             showToast("TODO");
-            //TODO (3) hide keyboard and save User
+            hideKeyboard();
             saveUser();
         }
         return true;
+    }
+
+    private void hideKeyboard() {
+        try {
+            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (getActivity().getCurrentFocus() != null)
+                imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void showToast(String message) {
@@ -112,7 +121,7 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
     }
 
     private void subscribeToModel() {
-        MainViewModelFactory factory = InjectorUtils.provideUserViewModelFactory(context);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
         model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
         model.getUserSigned().observe(this, user -> {
             if (user != null) {

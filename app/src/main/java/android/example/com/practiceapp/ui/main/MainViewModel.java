@@ -3,10 +3,14 @@ package android.example.com.practiceapp.ui.main;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.example.com.practiceapp.data.PracticeAppRepository;
+import android.example.com.practiceapp.data.models.Post;
 import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.Query;
 
 /**
  * ViewModel for {@link MainActivity}
@@ -21,12 +25,14 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<String> postCount;
     private MutableLiveData<String> followersCount;
     private MutableLiveData<String> followsCount;
+    private MutableLiveData<Post> postSelected;
     private PracticeAppRepository userRepo;
 
     public MainViewModel(PracticeAppRepository userRepo) {
         this.userRepo = userRepo;
         this.userSigned = new MutableLiveData<>();
         this.userSelected = new MutableLiveData<>();
+        this.postSelected = new MutableLiveData<>();
         this.mIsSigningIn = false;
     }
 
@@ -212,5 +218,21 @@ public class MainViewModel extends ViewModel {
         userSigned = null;
         userSelected = null;
     }
+
+    /**
+     *
+     * @return
+     */
+    public void loadFeed() {
+        userRepo.loadFeed();
+    }
+
+    public Query getBaseQuery() {
+        return userRepo.getBaseQuery(userSelected.getValue().getEmail());
+    }
+
+    public void select(Post post) { postSelected.setValue(post); }
+
+    public MutableLiveData<Post> getPostSelected() { return postSelected; }
 
 }

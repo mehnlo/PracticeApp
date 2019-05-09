@@ -1,6 +1,5 @@
 package android.example.com.practiceapp.ui.main.profile.list;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.paging.PagedList;
 import android.content.Context;
@@ -25,10 +24,6 @@ import android.widget.ProgressBar;
 
 import com.firebase.ui.firestore.SnapshotParser;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 public class ListPostFragment extends Fragment {
     private static final String TAG = ListPostFragment.class.getSimpleName();
@@ -37,9 +32,7 @@ public class ListPostFragment extends Fragment {
     private Context context;
     private RecyclerView mRecycler;
     private ProgressBar mProgressBar;
-    private FirebaseFirestore db;
-    private CollectionReference mItemsCollection;
-    private final Post mPost = new Post();
+    MainViewModel model;
 
     public ListPostFragment() {
     }
@@ -64,48 +57,37 @@ public class ListPostFragment extends Fragment {
     }
 
     private void subscribeToModel() {
-        MainViewModelFactory factory = InjectorUtils.provideUserViewModelFactory(context);
-        MainViewModel model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
+        model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
         model.getUserSelected().observe(this, user -> {
-            //TODO(10) Pass it out to the repository
             if (user != null) {
-                db = FirebaseFirestore.getInstance();
-                mPost.setUser(user);
-                String postsPath = "/posts/" + mPost.getUser().getEmail() + "/userPosts";
-                mItemsCollection = db.collection(postsPath);
-                setUpAdapter();
+                setUpAdapter(user);
             } else {
                 Log.d(TAG, "onChanged: The user is null");
             }
         });
     }
 
-    private void setUpAdapter() {
-        Query baseQuery = mItemsCollection.orderBy(Photo.FIELD_DATE, Query.Direction.DESCENDING);
-
+    private void setUpAdapter(User user) {
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)
                 .setPrefetchDistance(PREFETCH_DISTANCE)
                 .setPageSize(PAGE_SIZE)
                 .build();
 
-        SnapshotParser<Post> parser = new SnapshotParser<Post>() {
-            @NonNull
-            @Override
-            public Post parseSnapshot(@NonNull DocumentSnapshot snapshot) {
-                Post post = new Post();
-                post.setUser(mPost.getUser());
-                if (snapshot.exists()) {
-                    Photo photo = snapshot.toObject(Photo.class);
-                    post.setPhoto(photo);
-                }
-                return post;
+        SnapshotParser<Post> parser = snapshot -> {
+            Post post = new Post();
+            post.setUser(user);
+            if (snapshot.exists()) {
+                Photo photo = snapshot.toObject(Photo.class);
+                post.setPhoto(photo);
             }
+            return post;
         };
 
         FirestorePagingOptions<Post> options = new FirestorePagingOptions.Builder<Post>()
                 .setLifecycleOwner(this)
-                .setQuery(baseQuery, config, parser)
+                .setQuery(model.getBaseQuery(), config, parser)
                 .build();
 
         ListPostAdapter adapter = new ListPostAdapter(options, context, mProgressBar);

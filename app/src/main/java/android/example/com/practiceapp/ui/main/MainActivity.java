@@ -1,7 +1,6 @@
 package android.example.com.practiceapp.ui.main;
 
 import android.Manifest;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +11,6 @@ import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.ui.main.search.SearchFragment;
 import android.example.com.practiceapp.ui.main.profile.UserFragment;
 import android.example.com.practiceapp.ui.post.PostActivity;
-import android.example.com.practiceapp.utilities.MyAppGlideModule;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.example.com.practiceapp.utilities.OnSearchSelectedListener;
 import android.net.Uri;
@@ -81,6 +79,8 @@ public class MainActivity extends AppCompatActivity
     public static final String USER_FRAGMENT = "USER_FRAGMENT";
     public static final String SEARCH_FRAGMENT = "SEARCH_FRAGMENT";
     public static final int PICK_PHOTO_CODE = 1046;
+    public static final String PHOTO_URI = "photoUri";
+    public static final String EMAIL = "email";
 
     private MainFragment mainFragment = new MainFragment();
     private UserFragment userFragment = new UserFragment();
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         initDrawer();
         // View model
-        MainViewModelFactory factory = InjectorUtils.provideUserViewModelFactory(this);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(this.getApplicationContext());
         model = ViewModelProviders.of(this, factory).get(MainViewModel.class);
 
         // Enable Firestore logging
@@ -154,12 +154,17 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if(resultCode == RESULT_OK) {
                 galleryAddPic();
-                //setPic();
-                Intent intentToPostActivity = new Intent(MainActivity.this, PostActivity.class);
-                intentToPostActivity.putExtra(Intent.EXTRA_TEXT, mCurrentPhotoPath);
-                intentToPostActivity.putExtra("photoUri", mPhotoUri.toString());
+                model.getUserSigned().observe(this, user -> {
+                    if (user != null) {
+                        Intent intentToPostActivity = new Intent(MainActivity.this, PostActivity.class);
+                        Bundle extras = new Bundle();
+                        extras.putString(PHOTO_URI, mPhotoUri.toString());
+                        extras.putString(EMAIL, user.getEmail());
+                        intentToPostActivity.putExtras(extras);
+                        startActivity(intentToPostActivity);
+                    }
+                });
 
-                startActivity(intentToPostActivity);
             }
         } else if (requestCode == RC_SIGN_IN) {
             model.setIsSigningIn(false);
@@ -367,7 +372,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void subscribeToUserSigned(){
-        // TODO (5) Subscribe to changes of UserSigned
         model.getUserSigned().observe(this, user -> {
             if (user != null) {
                 updateNavHeader(user);

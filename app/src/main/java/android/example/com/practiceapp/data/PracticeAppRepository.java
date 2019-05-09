@@ -1,11 +1,19 @@
 package android.example.com.practiceapp.data;
 
 import android.arch.lifecycle.MutableLiveData;
+import android.example.com.practiceapp.AppExecutors;
 import android.example.com.practiceapp.data.database.UserDao;
 import android.example.com.practiceapp.data.firebase.FirebaseDataSource;
+import android.example.com.practiceapp.data.firebase.FirebaseFunctionsDataSource;
+import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
 import android.util.Log;
+
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.Map;
 
@@ -21,17 +29,21 @@ public class PracticeAppRepository {
     private static PracticeAppRepository sInstance;
     private final UserDao mUserDao;
     private final FirebaseDataSource mFirebaseDataSource;
-//    private final AppExecutor mExecutor;
+    private final FirebaseFunctionsDataSource mFunctionsDataSource;
+    private final AppExecutors mExecutors;
 
-    private PracticeAppRepository(UserDao userDao, FirebaseDataSource firebaseDataSource) {
+    private PracticeAppRepository(UserDao userDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
         mUserDao = userDao;
         mFirebaseDataSource = firebaseDataSource;
+        mFunctionsDataSource = functionsDataSource;
+        mExecutors = executors;
+
     }
-    public synchronized static PracticeAppRepository getInstance(UserDao userDao, FirebaseDataSource firebaseDataSource) {
+    public synchronized static PracticeAppRepository getInstance(UserDao userDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
         Log.d(TAG, "Getting the repository");
         if (sInstance == null) {
             synchronized (LOCK) {
-                sInstance = new PracticeAppRepository(userDao, firebaseDataSource);
+                sInstance = new PracticeAppRepository(userDao, firebaseDataSource, functionsDataSource, executors);
                 Log.d(TAG, "Made new repository");
             }
         }
@@ -60,7 +72,7 @@ public class PracticeAppRepository {
     }
 
     /**
-     * Firebase related operations
+     * Firestore related operations
      */
 
     /**
@@ -135,6 +147,21 @@ public class PracticeAppRepository {
         mFirebaseDataSource.unfollow(email, emailSelected);
     }
 
-    // TODO (7) Delete method
+    public Query getBaseQuery(String email) {
+        return mFirebaseDataSource.getBaseQuery(email);
+    }
+
+    // TODO (7) Create delete method
+
+    public MutableLiveData<Integer> uploadPhoto(String email, Photo photo) {
+        return mFirebaseDataSource.uploadPhoto(email, photo);
+    }
+
+    /**
+     * Functions related operations
+     */
+    public void loadFeed() {
+       mFunctionsDataSource.loadFeed();
+    }
 
 }

@@ -1,6 +1,5 @@
 package android.example.com.practiceapp.ui.main.profile;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.example.com.practiceapp.R;
@@ -103,7 +102,7 @@ public class UserFragment extends Fragment {
     }
 
     private void subscribeToModel() {
-        MainViewModelFactory factory = InjectorUtils.provideUserViewModelFactory(context);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
         MainViewModel model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
         model.getUserSelected().observe(this, user -> {
             if (user != null) {
