@@ -1,20 +1,25 @@
 package android.example.com.practiceapp.data;
 
-import android.arch.lifecycle.MutableLiveData;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.work.WorkInfo;
+
 import android.example.com.practiceapp.AppExecutors;
+import android.example.com.practiceapp.data.database.PostDao;
+import android.example.com.practiceapp.data.database.PostEntry;
 import android.example.com.practiceapp.data.database.UserDao;
 import android.example.com.practiceapp.data.firebase.FirebaseDataSource;
 import android.example.com.practiceapp.data.firebase.FirebaseFunctionsDataSource;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.User;
+import android.example.com.practiceapp.utilities.PracticeAppDateUtils;
 import android.net.Uri;
 import android.util.Log;
 
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.storage.StorageMetadata;
-import com.google.firebase.storage.UploadTask;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,23 +32,35 @@ public class PracticeAppRepository {
     private static final Object LOCK = new Object();
 
     private static PracticeAppRepository sInstance;
-    private final UserDao mUserDao;
+    private final PostDao mPostDao;
     private final FirebaseDataSource mFirebaseDataSource;
     private final FirebaseFunctionsDataSource mFunctionsDataSource;
     private final AppExecutors mExecutors;
+    private boolean mInitialized = false;
+    private LiveData<WorkInfo> mStatus;
 
-    private PracticeAppRepository(UserDao userDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
-        mUserDao = userDao;
+    private PracticeAppRepository(PostDao postDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
+        mPostDao = postDao;
         mFirebaseDataSource = firebaseDataSource;
         mFunctionsDataSource = functionsDataSource;
         mExecutors = executors;
+        mStatus = new MutableLiveData<>();
+        LiveData<PostEntry[]> networkData = mFunctionsDataSource.getCurrentPosts();
+        networkData.observeForever(newFeedFromNetwork -> mExecutors.diskIO().execute(() -> {
+            // Delete old historical data
+            deleteOldData();
+            Log.d(TAG, "Old feed deleted");
+            // Insert our new feed data into PracticeApp's database
+            mPostDao.bulkInsert(newFeedFromNetwork);
+            Log.d(TAG, "New values inserted");
+        }));
 
     }
-    public synchronized static PracticeAppRepository getInstance(UserDao userDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
+    public synchronized static PracticeAppRepository getInstance(PostDao postDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
         Log.d(TAG, "Getting the repository");
         if (sInstance == null) {
             synchronized (LOCK) {
-                sInstance = new PracticeAppRepository(userDao, firebaseDataSource, functionsDataSource, executors);
+                sInstance = new PracticeAppRepository(postDao, firebaseDataSource, functionsDataSource, executors);
                 Log.d(TAG, "Made new repository");
             }
         }
@@ -53,12 +70,29 @@ public class PracticeAppRepository {
     /**
      * Database related operations
      */
+    /**
+     * Creates periodic sync tasks and checks to see if an immediate sync is required. If an
+     * immediate sync is required, this method will take care of making sure that sync occurs.
+     */
+    private synchronized void initializeData() {
 
+        // Only perfom initialization once per app lifetime. If initialization has already been
+        // performed, we have nothing to do in this method.
+        if (mInitialized) return;
+        mInitialized = true;
+
+        // This method call triggers PracticeApp to create its task to synchronize post data
+        // periodically
+        mStatus = mFunctionsDataSource.scheduleRecurringFethcFeedSync();
+
+        // TODO (9) isFetchNeeded
+    }
     /**
      * Deletes old weather data because we don't need to keep multiple day's data
      */
     private void deleteOldData() {
-        // TODO Finish this method when instructed
+        Date today = PracticeAppDateUtils.getNormalizedUtcDateForToday();
+        mPostDao.deleteOldFeed(today);
     }
 
     /**
@@ -67,8 +101,8 @@ public class PracticeAppRepository {
      * @return Whether a fetch is needed
      */
     private boolean isFetchNeeded() {
-        // TODO Finish this method when instructed
-        return true;
+//        Date today = PracticeAppDateUtils.getNormalizedUtcDateForToday();
+        return false;
     }
 
     /**
@@ -160,8 +194,16 @@ public class PracticeAppRepository {
     /**
      * Functions related operations
      */
-    public void loadFeed() {
-       mFunctionsDataSource.loadFeed();
+
+
+    /**
+     *
+     * @return
+     */
+    public LiveData<List<PostEntry>> getCurrentFeed() {
+        initializeData();
+        return mPostDao.getCurrentFeed();
     }
 
+    public LiveData<WorkInfo> getStatus() { return mStatus; }
 }

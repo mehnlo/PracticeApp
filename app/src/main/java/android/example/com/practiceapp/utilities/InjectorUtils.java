@@ -26,8 +26,15 @@ public class InjectorUtils {
         //  you must set the appropriate value at initialization. For example, on Android
         //  you would initialize with getInstance(FirebaseApp app, String region)
         FirebaseFunctions functions = FirebaseFunctions.getInstance(FirebaseApp.getInstance(), REGION);
-        FirebaseFunctionsDataSource functionsDataSource = FirebaseFunctionsDataSource.getInstance(functions, executors);
-        return PracticeAppRepository.getInstance(database.userDao(), firebaseDataSource, functionsDataSource, executors);
+        FirebaseFunctionsDataSource functionsDataSource =
+                FirebaseFunctionsDataSource.getInstance(context.getApplicationContext(),functions, executors);
+        return PracticeAppRepository.getInstance(database.postDao(), firebaseDataSource, functionsDataSource, executors);
+    }
+    public static FirebaseFunctionsDataSource provideNetworkDataSource(Context context) {
+        AppExecutors executors = AppExecutors.getInstance();
+        FirebaseFunctions functions = FirebaseFunctions.getInstance(FirebaseApp.getInstance(), REGION);
+
+        return FirebaseFunctionsDataSource.getInstance(context.getApplicationContext(),functions, executors);
     }
     public static MainViewModelFactory provideMainViewModelFactory(Context context) {
         PracticeAppRepository repository = provideRepository(context.getApplicationContext());

@@ -3,7 +3,7 @@ package android.example.com.practiceapp.ui.main.profile.list;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

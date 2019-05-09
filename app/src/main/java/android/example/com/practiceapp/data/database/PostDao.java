@@ -1,10 +1,13 @@
 package android.example.com.practiceapp.data.database;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Insert;
-import android.arch.persistence.room.OnConflictStrategy;
-import android.arch.persistence.room.Query;
+import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
+
+import java.util.Date;
+import java.util.List;
 
 @Dao
 public interface PostDao {
@@ -14,4 +17,8 @@ public interface PostDao {
 
     @Query("SELECT * FROM post WHERE author = :author")
     LiveData<PostEntry> getPostByAuthor(String author);
+    @Query("SELECT * FROM post ORDER BY date DESC")
+    LiveData<List<PostEntry>> getCurrentFeed();
+    @Query("DELETE FROM post WHERE date < :date")
+    void deleteOldFeed(Date date);
 }

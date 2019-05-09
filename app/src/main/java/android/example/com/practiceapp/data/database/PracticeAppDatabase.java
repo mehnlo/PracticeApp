@@ -1,12 +1,12 @@
 package android.example.com.practiceapp.data.database;
 
-import android.arch.persistence.room.Database;
-import android.arch.persistence.room.Room;
-import android.arch.persistence.room.RoomDatabase;
-import android.arch.persistence.room.TypeConverters;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 import android.content.Context;
 
-@Database(entities = {UserEntry.class, PostEntry.class}, version = 1, exportSchema = false)
+@Database(entities = {PostEntry.class}, version = 2, exportSchema = false)
 @TypeConverters(DateConverter.class)
 public abstract class PracticeAppDatabase extends RoomDatabase {
     private static final String DATABASE_NAME = "practiceApp";
@@ -19,13 +19,16 @@ public abstract class PracticeAppDatabase extends RoomDatabase {
         if (sInstance == null) {
             synchronized (LOCK) {
                 if (sInstance == null) {
-                    sInstance = Room.databaseBuilder(context.getApplicationContext(), PracticeAppDatabase.class, PracticeAppDatabase.DATABASE_NAME).build();
+                    sInstance = Room.databaseBuilder(context.getApplicationContext(),
+                            PracticeAppDatabase.class, PracticeAppDatabase.DATABASE_NAME)
+                            .fallbackToDestructiveMigration()
+                            .build();
                 }
             }
         }
         return sInstance;
     }
 
-    public abstract UserDao userDao();
+//    public abstract UserDao userDao();
     public abstract PostDao postDao();
 }

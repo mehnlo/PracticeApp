@@ -1,9 +1,9 @@
 package android.example.com.practiceapp.ui.main;
 
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import android.example.com.practiceapp.data.PracticeAppRepository;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     private final PracticeAppRepository mRepository;

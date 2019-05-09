@@ -1,23 +1,22 @@
 package android.example.com.practiceapp.data.database;
 
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.ForeignKey;
-import android.arch.persistence.room.Index;
-import android.arch.persistence.room.PrimaryKey;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
 
 import java.util.Date;
 
-import static android.arch.persistence.room.ForeignKey.CASCADE;
 
-@Entity(tableName = "post",
-        indices = @Index(value = {"author"}),
-        foreignKeys = @ForeignKey(entity = UserEntry.class,
-            parentColumns = "id",
-            childColumns = "author",
-            onDelete = CASCADE))
+//        foreignKeys = @ForeignKey(entity = UserEntry.class,
+//            parentColumns = "id",
+//            childColumns = "author",
+//            onDelete = CASCADE))
+@Entity(tableName = "post", indices = @Index(value = {"author"}))
 public class PostEntry {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey
+    @NonNull
+    private String id;
     private String author;
     private String title;
     private String photoUrl;
@@ -25,7 +24,7 @@ public class PostEntry {
     // geo
     private Date date;
 
-    public PostEntry(int id, String author, String title, String photoUrl, Date date) {
+    public PostEntry(String id, String author, String title, String photoUrl, Date date) {
         this.id = id;
         this.author = author;
         this.title = title;
@@ -33,7 +32,7 @@ public class PostEntry {
         this.date = date;
     }
 
-    public int getId() { return id; }
+    public String getId() { return id; }
 
     public String getAuthor() { return author; }
 

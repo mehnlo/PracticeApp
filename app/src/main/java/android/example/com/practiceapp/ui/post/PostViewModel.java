@@ -1,11 +1,10 @@
 package android.example.com.practiceapp.ui.post;
 
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 import android.example.com.practiceapp.data.PracticeAppRepository;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.Post;
-import android.net.Uri;
 import android.util.Log;
 
 /**

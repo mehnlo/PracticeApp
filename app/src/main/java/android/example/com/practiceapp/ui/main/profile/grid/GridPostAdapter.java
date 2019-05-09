@@ -5,8 +5,8 @@ import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.utilities.OnPostSelectedListener;
-import android.example.com.practiceapp.ui.post.PostViewModel;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

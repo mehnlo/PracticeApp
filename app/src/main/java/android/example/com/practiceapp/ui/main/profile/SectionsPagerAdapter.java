@@ -2,9 +2,9 @@ package android.example.com.practiceapp.ui.main.profile;
 
 import android.example.com.practiceapp.ui.main.profile.grid.GridPostFragment;
 import android.example.com.practiceapp.ui.main.profile.list.ListPostFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

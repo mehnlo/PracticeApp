@@ -4,7 +4,7 @@ import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
-import android.support.v7.widget.AppCompatImageView;
+import androidx.appcompat.widget.AppCompatImageView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 

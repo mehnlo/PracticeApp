@@ -1,6 +1,6 @@
 package android.example.com.practiceapp.data.firebase;
 
-import android.arch.lifecycle.MutableLiveData;
+import androidx.lifecycle.MutableLiveData;
 import android.example.com.practiceapp.AppExecutors;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.User;

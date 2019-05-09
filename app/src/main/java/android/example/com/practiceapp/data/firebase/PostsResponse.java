@@ -1,7 +1,7 @@
 package android.example.com.practiceapp.data.firebase;
 
 import android.example.com.practiceapp.data.database.PostEntry;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Posts response from the backend. Contains the posts feed.

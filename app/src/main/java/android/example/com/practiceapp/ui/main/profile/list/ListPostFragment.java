@@ -1,7 +1,7 @@
 package android.example.com.practiceapp.ui.main.profile.list;
 
-import android.arch.lifecycle.ViewModelProviders;
-import android.arch.paging.PagedList;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.paging.PagedList;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Photo;
@@ -11,11 +11,11 @@ import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;

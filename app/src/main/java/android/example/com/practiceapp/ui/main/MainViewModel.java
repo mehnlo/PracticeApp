@@ -1,16 +1,21 @@
 package android.example.com.practiceapp.ui.main;
 
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
+import androidx.work.WorkInfo;
+
 import android.example.com.practiceapp.data.PracticeAppRepository;
+import android.example.com.practiceapp.data.database.PostEntry;
 import android.example.com.practiceapp.data.models.Post;
 import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.Query;
+
+import java.util.List;
 
 /**
  * ViewModel for {@link MainActivity}
@@ -26,14 +31,18 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<String> followersCount;
     private MutableLiveData<String> followsCount;
     private MutableLiveData<Post> postSelected;
-    private PracticeAppRepository userRepo;
+    private PracticeAppRepository mRepo;
+    private MutableLiveData<List<PostEntry>> mFeed;
+    private LiveData<WorkInfo> mStatus;
 
-    public MainViewModel(PracticeAppRepository userRepo) {
-        this.userRepo = userRepo;
+    public MainViewModel(PracticeAppRepository repo) {
+        this.mRepo = repo;
         this.userSigned = new MutableLiveData<>();
         this.userSelected = new MutableLiveData<>();
         this.postSelected = new MutableLiveData<>();
-        this.mIsSigningIn = false;
+        mFeed = new MutableLiveData<>();
+        mStatus = new MutableLiveData<>();
+        mIsSigningIn = false;
     }
 
 
@@ -97,7 +106,7 @@ public class MainViewModel extends ViewModel {
         }
         String email = userSigned.getValue().getEmail();
         String emailSelected = userSelected.getValue().getEmail();
-        userRepo.loadFollows(email, emailSelected).observeForever(text -> {
+        mRepo.loadFollows(email, emailSelected).observeForever(text -> {
             if(!TextUtils.isEmpty(text)) {
                 buttonText.postValue(text);
             }
@@ -118,7 +127,7 @@ public class MainViewModel extends ViewModel {
      */
     private void loadCounters() {
         String email = userSelected.getValue().getEmail();
-        userRepo.loadCounters(email).observeForever(counterMap -> {
+        mRepo.loadCounters(email).observeForever(counterMap -> {
             if (!counterMap.isEmpty()) {
                 postCount.postValue(counterMap.get("posts"));
                 followersCount.postValue(counterMap.get("followers"));
@@ -161,7 +170,7 @@ public class MainViewModel extends ViewModel {
         String email = userSigned.getValue().getEmail();
         String emailSelected = userSelected.getValue().getEmail();
         Log.d(TAG, "'" + email + "' started to follow '" + emailSelected + "'.");
-        userRepo.follow(email, emailSelected);
+        mRepo.follow(email, emailSelected);
         // TODO (1) Send notification to the userSelected
     }
 
@@ -172,7 +181,7 @@ public class MainViewModel extends ViewModel {
         String email = userSigned.getValue().getEmail();
         String emailSelected = userSelected.getValue().getEmail();
         Log.d(TAG, "'" + email + "' stopped following '" + emailSelected + "'.");
-        userRepo.unfollow(email, emailSelected);
+        mRepo.unfollow(email, emailSelected);
     }
 
     /**
@@ -181,8 +190,13 @@ public class MainViewModel extends ViewModel {
      */
     public void initUser(String email) {
         Log.d(TAG, "initUser()");
-        userSigned = userRepo.get(email);
+        userSigned = mRepo.get(email);
         select(userSigned.getValue());
+        mRepo.getCurrentFeed().observeForever(postEntries -> {
+            if (!postEntries.isEmpty()) {
+                mFeed.postValue(postEntries);
+            }
+        });
     }
 
     /**
@@ -191,7 +205,7 @@ public class MainViewModel extends ViewModel {
      */
     public void createUser(User user) {
         Log.d(TAG, "createUser()");
-        userSigned = userRepo.create(user);
+        userSigned = mRepo.create(user);
         select(userSigned.getValue());
 
     }
@@ -200,7 +214,7 @@ public class MainViewModel extends ViewModel {
      * Update the user on the Repository
      */
     public void saveUser() {
-        userRepo.update(userSigned.getValue());
+        mRepo.update(userSigned.getValue());
     }
 
     /**
@@ -208,7 +222,7 @@ public class MainViewModel extends ViewModel {
      * @param mPhotoUri
      */
     public void uploadProfilePic(Uri mPhotoUri) {
-        userRepo.uploadProfilePic(userSigned.getValue().getEmail(), mPhotoUri);
+        mRepo.uploadProfilePic(userSigned.getValue().getEmail(), mPhotoUri);
     }
 
     /**
@@ -219,20 +233,13 @@ public class MainViewModel extends ViewModel {
         userSelected = null;
     }
 
-    /**
-     *
-     * @return
-     */
-    public void loadFeed() {
-        userRepo.loadFeed();
-    }
-
-    public Query getBaseQuery() {
-        return userRepo.getBaseQuery(userSelected.getValue().getEmail());
-    }
+    public Query getBaseQuery() { return mRepo.getBaseQuery(userSelected.getValue().getEmail()); }
 
     public void select(Post post) { postSelected.setValue(post); }
 
     public MutableLiveData<Post> getPostSelected() { return postSelected; }
 
+    public LiveData<List<PostEntry>> getFeed() { return mFeed; }
+
+    public LiveData<WorkInfo> getStatus() { return mStatus; }
 }

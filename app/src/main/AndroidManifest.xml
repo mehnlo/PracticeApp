@@ -38,7 +38,7 @@
             android:label="@string/post_activity"
             android:launchMode="singleTop" />
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="android.example.com.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -46,6 +46,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <!-- This is required for immediate syncs -->
     </application>
 
 </manifest>

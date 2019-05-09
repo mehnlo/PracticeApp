@@ -1,14 +1,13 @@
 package android.example.com.practiceapp.ui.post;
 
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.ui.main.MainActivity;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;

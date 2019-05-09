@@ -1,37 +1,45 @@
 package android.example.com.practiceapp.data.firebase;
 
-import android.arch.lifecycle.MutableLiveData;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import android.content.Context;
+import android.content.Intent;
 import android.example.com.practiceapp.AppExecutors;
 import android.example.com.practiceapp.data.database.PostEntry;
 import android.util.Log;
+
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.FirebaseFunctionsException;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class FirebaseFunctionsDataSource {
     private static final String TAG = FirebaseFunctionsDataSource.class.getSimpleName();
     private static final String FUNCTION_NAME = "loadFeed";
     // For singleton instantiation
     private static final Object LOCK = new Object();
+    public static final String PRACTICEAPP_SYNC_TAG = "practiceapp-sync";
     private static FirebaseFunctionsDataSource sInstance;
-
-    private final FirebaseFunctions functions;
+    private final Context mContext;
+    private final FirebaseFunctions mFunctions;
     private final AppExecutors mExecutors;
 
 
     private final MutableLiveData<PostEntry[]> mDownloadedPostsFeed;
 
-    private FirebaseFunctionsDataSource(FirebaseFunctions functions, AppExecutors executors) {
-        this.functions = functions;
+    private FirebaseFunctionsDataSource(Context context, FirebaseFunctions functions, AppExecutors executors) {
+        mContext = context;
+        mFunctions = functions;
         mExecutors = executors;
         mDownloadedPostsFeed = new MutableLiveData<>();
     }
@@ -39,64 +47,88 @@ public class FirebaseFunctionsDataSource {
     /**
      * Get the singleton for this class
      */
-    public static FirebaseFunctionsDataSource getInstance(FirebaseFunctions functions, AppExecutors executors) {
+    public static FirebaseFunctionsDataSource getInstance(Context context, FirebaseFunctions functions, AppExecutors executors) {
         Log.d(TAG, "Getting the firebase functions data source");
         if (sInstance == null) {
             synchronized (LOCK) {
-                sInstance = new FirebaseFunctionsDataSource(functions, executors);
+                sInstance = new FirebaseFunctionsDataSource(context, functions, executors);
                 Log.d(TAG, "Made a new firebase functions data source");
             }
         }
         return sInstance;
     }
 
-    public void loadFeed() {
+    /**
+     * Schedules a periodic work request which fetches the feed.
+     */
+    public LiveData<WorkInfo> scheduleRecurringFethcFeedSync() {
+        // Create the Job to periodically sync Sunshine
+        Constraints constraints = new Constraints.Builder()
+                // The Woker needs Network connectivity
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        PeriodicWorkRequest request =
+                // Tell which work to execute and set the interval
+                new PeriodicWorkRequest.Builder(PracticeAppFirebaseWorker.class, 15, TimeUnit.MINUTES)
+                        // Set additional constraints
+                        .setConstraints(constraints)
+                        .build();
+        WorkManager.getInstance()
+                .enqueueUniquePeriodicWork(PRACTICEAPP_SYNC_TAG, ExistingPeriodicWorkPolicy.KEEP, request);
+        LiveData<WorkInfo> status = WorkManager.getInstance().getWorkInfoByIdLiveData(request.getId());
+        Log.d(TAG, "Work scheduled");
+        return status;
+    }
+
+    // TODO (3) Refator to fetchFeed() and move a Worker Class
+    void loadFeed() {
         Log.d(TAG, "Starting to loadFeed()");
         // Create the arguments to the callable function.
         Map<String, Object> data = new HashMap<>();
-        final Task<Object> loadFeedTask;
-        mExecutors.networkIO().execute(() -> functions
-            .getHttpsCallable(FUNCTION_NAME)
-            .call(data)
+        mExecutors.networkIO().execute(() -> {
+             Task<Object> taskResult = mFunctions.getHttpsCallable(FUNCTION_NAME).call(data)
             .continueWith(response -> {
                 // This continuation runs on either success or failure, but if the task
                 // has failed then getResult() will throw an Exception which will be
                 // propagated down.
                 if (response.getException() != null) {
+                    Log.d(TAG, "throwing exception");
                     throw new Exception(response.getException());
                 }
-                Object result = response.getResult().getData();
-                JSONObject res = (JSONObject) response.getResult().getData();
-                JSONArray names = res.names();
-                Log.d(TAG, names.toString('\t'));
-                //Log.d(TAG, "then: result:" +  result);
-                // Parse the JSON into a list of Posts
-                Gson gson = new Gson();
-                Type collectionType = new TypeToken<HashMap<String,Object>>(){}.getType();
-                // TODO (3) Create a class to parse the result Json into a list of Posts
-                Map<String, Object> map = gson.fromJson(result.toString(), collectionType);
+                try {
+                    Object result = response.getResult().getData();
+                    Log.d(TAG, result.toString());
+                    // Parse the JSON into a list of Posts
+                    PostsResponse postsResponse = new PostsJsonParser().parse(result);
+                    Log.d(TAG, "JSON Parsing finished");
+                    // As long as there are Posts, update the LiveData storing the most recent
+                    // posts. This will trigger observers of that LiveData, such as the
+                    // PracticeAppRepository
+                    if (postsResponse != null && postsResponse.getPostsFeed().length != 0) {
+                        Log.d(TAG, "JSON not null and has " + postsResponse.getPostsFeed().length + " values.");
+                        // Will eventually do something with the downloaded data
+                        mDownloadedPostsFeed.postValue(postsResponse.getPostsFeed());
+                    }
+                } catch (Exception e) {
+                    Log.wtf(TAG, "loadFeed: ", e.fillInStackTrace());
+                }
 
-                // As long as there are Posts, update the LiveData storing the most recent
-                // posts. This will trigger observers of that LiveData, such as the
-                // PracticeAppRepository
-                if (map != null && !map.isEmpty()) {
-                    Log.d(TAG, "JSON not null and has " + map.size() + " values");
-                }
-                // Will eventually do something with the downloaded data
-//                mDownloadedPostsFeed.postValue(map);
                 return response.getResult().getData();
-            }).addOnCompleteListener(task -> {
-                if (!task.isSuccessful()) {
-                   Exception e = task.getException();
-                   if (e instanceof FirebaseFunctionsException) {
-                       FirebaseFunctionsException ffe = (FirebaseFunctionsException) e;
-                       FirebaseFunctionsException.Code code = ffe.getCode();
-                       Object details = ffe.getDetails();
-                   }
-                } else {
-                    Log.d(TAG, "onComplete: loadFeed completed successfully");
-                }
-            }));
+            });
+
+            taskResult.addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                       Exception e = task.getException();
+                       if (e instanceof FirebaseFunctionsException) {
+                           FirebaseFunctionsException ffe = (FirebaseFunctionsException) e;
+                           FirebaseFunctionsException.Code code = ffe.getCode();
+                           Object details = ffe.getDetails();
+                       }
+                    } else {
+                        Log.d(TAG, "loadFeed completed successfully");
+                    }
+                });
+        });
     }
 
     public MutableLiveData<PostEntry[]> getCurrentPosts() {
