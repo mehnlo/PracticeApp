@@ -31,6 +31,7 @@ android {
 }
 
 dependencies {
+    def nav_version = "2.1.0-alpha03"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.google.android.material:material:1.0.0'
     androidTestImplementation 'androidx.test:runner:1.1.1'
@@ -44,6 +45,8 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.cardview:cardview:1.0.0'
+    implementation "androidx.navigation:navigation-fragment:$nav_version"
+    implementation "androidx.navigation:navigation-ui:$nav_version"
 
     // Android architecture components
     implementation 'androidx.paging:paging-runtime:2.1.0'
@@ -52,18 +55,17 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.0.0'
     annotationProcessor 'androidx.lifecycle:lifecycle-compiler:2.0.0'
     annotationProcessor 'androidx.room:room-compiler:2.0.0'
-    // Androidx dependencies
     implementation 'androidx.work:work-runtime:2.0.1'
 
-    implementation 'com.google.firebase:firebase-core:16.0.8'
+    implementation 'com.google.firebase:firebase-core:16.0.9'
     // Firebase Authentication
-    implementation 'com.google.firebase:firebase-auth:16.2.1'
+    implementation 'com.google.firebase:firebase-auth:17.0.0'
     // Firebase Firestore
-    implementation 'com.google.firebase:firebase-firestore:18.2.0'
+    implementation 'com.google.firebase:firebase-firestore:19.0.0'
     // Firebase Storage
-    implementation 'com.google.firebase:firebase-storage:16.1.0'
+    implementation 'com.google.firebase:firebase-storage:17.0.0'
     // Firebase Functions
-    implementation 'com.google.firebase:firebase-functions:16.3.0'
+    implementation 'com.google.firebase:firebase-functions:17.0.0'
     // FirebaseUI
     implementation 'com.firebaseui:firebase-ui-firestore:4.3.2'
     implementation 'com.firebaseui:firebase-ui-auth:4.3.2'
@@ -87,7 +89,9 @@ dependencies {
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.22.1'
     implementation 'androidx.multidex:multidex:2.0.1'
 
-
 }
 
 apply plugin: 'com.google.gms.google-services'
+repositories {
+    mavenCentral()
+}

@@ -1,20 +1,21 @@
-package android.example.com.practiceapp.ui.main.profile.list;
+package android.example.com.practiceapp.ui.main.user.grid;
+
 
 import androidx.lifecycle.ViewModelProviders;
 import androidx.paging.PagedList;
 import android.content.Context;
+import android.example.com.practiceapp.ui.main.MainViewModelFactory;
+import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.Post;
 import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.ui.main.MainViewModel;
-import android.example.com.practiceapp.ui.main.MainViewModelFactory;
-import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,28 +26,31 @@ import android.widget.ProgressBar;
 import com.firebase.ui.firestore.SnapshotParser;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 
-public class ListPostFragment extends Fragment {
-    private static final String TAG = ListPostFragment.class.getSimpleName();
-    private static final int PAGE_SIZE = 4;
-    private static final int PREFETCH_DISTANCE = 2;
-    private Context context;
-    private RecyclerView mRecycler;
-    private ProgressBar mProgressBar;
-    MainViewModel model;
+public class GridPostFragment extends Fragment {
 
-    public ListPostFragment() {
-    }
+    public static final String TAG = GridPostFragment.class.getSimpleName();
+    private static final int SPAN_COUNT = 3;
+    private static final int PREFETCH_DISTANCE = 2;
+    private static final int PAGE_SIZE = 6;
+
+    private Context mContext;
+    private ProgressBar mProgressBar;
+    private RecyclerView mRecyclerView;
+    private MainViewModel model;
+
+
+    public GridPostFragment() { }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        this.context = context;
+        mContext = context;
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_content_list_user, container, false);
+        return inflater.inflate(R.layout.fragment_content_grid_user, container, false);
     }
 
     @Override
@@ -54,11 +58,12 @@ public class ListPostFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         bindView();
         subscribeToModel();
+
     }
 
     private void subscribeToModel() {
-        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
-        model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(mContext);
+        model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
         model.getUserSelected().observe(this, user -> {
             if (user != null) {
                 setUpAdapter(user);
@@ -90,15 +95,16 @@ public class ListPostFragment extends Fragment {
                 .setQuery(model.getBaseQuery(), config, parser)
                 .build();
 
-        ListPostAdapter adapter = new ListPostAdapter(options, context, mProgressBar);
-
-        mRecycler.setLayoutManager(new LinearLayoutManager(context));
-        mRecycler.setAdapter(adapter);
+        GridPostAdapter adapter = new GridPostAdapter(options, mContext, mProgressBar);
+        adapter.setViewModel(model);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(mContext, SPAN_COUNT));
+        mRecyclerView.setAdapter(adapter);
     }
 
     private void bindView() {
+        assert getView() != null;
         mProgressBar = getView().findViewById(R.id.paging_loading);
-        mRecycler = getView().findViewById(R.id.recycler_view);
+        mRecyclerView = getView().findViewById(R.id.recycler_view);
     }
 
 }

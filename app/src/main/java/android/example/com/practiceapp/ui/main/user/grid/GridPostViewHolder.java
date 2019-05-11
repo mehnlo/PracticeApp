@@ -1,4 +1,4 @@
-package android.example.com.practiceapp.ui.main.profile.grid;
+package android.example.com.practiceapp.ui.main.user.grid;
 
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.utilities.OnPostSelectedListener;
@@ -6,6 +6,7 @@ import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
 import android.net.Uri;
 import androidx.annotation.NonNull;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -19,12 +20,10 @@ public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnCli
     private ImageView mImageView;
     private Post item;
     private MainViewModel model;
-    private OnPostSelectedListener callback;
 
-    GridPostViewHolder(@NonNull View itemView, MainViewModel model, OnPostSelectedListener callback) {
+    GridPostViewHolder(@NonNull View itemView, MainViewModel model) {
         super(itemView);
         this.model = model;
-        this.callback = callback;
         mImageView = itemView.findViewById(R.id.imageView);
         itemView.setOnClickListener(this);
     }
@@ -45,7 +44,7 @@ public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnCli
     @Override
     public void onClick(View view) {
         model.select(item);
-        callback.onPostSelected();
+        Navigation.findNavController(view).navigate(R.id.action_global_user_to_defailPost);
     }
 
 

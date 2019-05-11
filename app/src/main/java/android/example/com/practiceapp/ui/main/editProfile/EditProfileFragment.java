@@ -13,6 +13,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,7 +34,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 
 public class EditProfileFragment extends Fragment implements OnItemSelectedListener {
-
+    private static final String TAG = EditProfileFragment.class.getSimpleName();
     private Context context;
     private MainViewModel model;
     private ImageView profilePic;
@@ -47,7 +48,7 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         this.context = context;
     }
@@ -61,7 +62,6 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        getActivity().setTitle(getString(R.string.edit_profile_fragment_title));
         return inflater.inflate(R.layout.fragment_edit_profile, container, false);
     }
 
@@ -84,26 +84,27 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.menu_edit_profile, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_update) {
-            showToast("TODO");
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.edit_profile) {
             hideKeyboard();
             saveUser();
+        } else if (item.getItemId() == android.R.id.home) {
+            Navigation.findNavController(getView()).navigateUp();
         }
         return true;
     }
 
     private void hideKeyboard() {
         try {
-            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (getActivity().getCurrentFocus() != null)
-                imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+            InputMethodManager imm = (InputMethodManager)requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (requireActivity().getCurrentFocus() != null)
+                imm.hideSoftInputFromWindow(requireActivity().getCurrentFocus().getWindowToken(), 0);
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -122,7 +123,7 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
 
     private void subscribeToModel() {
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
-        model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
+        model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
         model.getUserSigned().observe(this, user -> {
             if (user != null) {
                 updateUI(user);
@@ -154,7 +155,7 @@ public class EditProfileFragment extends Fragment implements OnItemSelectedListe
     }
 
     private void saveSharedPreferences() {
-        SharedPreferences sharedPreferences = getActivity()
+        SharedPreferences sharedPreferences = requireActivity()
                 .getSharedPreferences(getString(R.string.pref_file_key), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(getString(R.string.account_username_key), model.getUserSigned().getValue().getUsername());

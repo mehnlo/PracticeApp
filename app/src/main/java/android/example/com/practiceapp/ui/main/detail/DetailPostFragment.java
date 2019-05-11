@@ -26,7 +26,7 @@ import com.bumptech.glide.Glide;
 public class DetailPostFragment extends Fragment {
 
     public static final String TAG = DetailPostFragment.class.getSimpleName();
-    private Context context;
+    private Context mContext;
     private TextView tvDate;
     private ImageView ivUserProfile;
     private TextView tvUsername;
@@ -38,9 +38,9 @@ public class DetailPostFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        this.context = context;
+        mContext = context;
     }
 
     @Nullable
@@ -57,8 +57,8 @@ public class DetailPostFragment extends Fragment {
     }
 
     private void subscribeToViewModel() {
-        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
-        MainViewModel model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(mContext);
+        MainViewModel model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
         model.getPostSelected().observe(this, post -> {
             if (post != null) {
                 changeUI(post);

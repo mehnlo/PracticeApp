@@ -45,4 +45,6 @@
     <string name="sex_unspecified">Sin especificar</string>
     <string name="action_update">Actualizar</string>
     <string name="edit_profile_fragment_title">Editar Perfil</string>
+    <string name="action_profile_searched">Perfil buscado</string>
+    <string name="action_detail_post">Detalle</string>
 </resources>

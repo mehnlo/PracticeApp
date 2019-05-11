@@ -1,4 +1,4 @@
-package android.example.com.practiceapp.ui.main.profile.list;
+package android.example.com.practiceapp.ui.main.user.list;
 
 import android.content.Context;
 import android.example.com.practiceapp.R;

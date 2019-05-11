@@ -9,12 +9,9 @@ import android.util.Log;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.storage.FirebaseStorage;
@@ -25,7 +22,6 @@ import com.google.firebase.storage.UploadTask;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -85,20 +81,16 @@ public class FirebaseDataSource {
         DocumentReference documentReference = usersRef.document(email);
         Log.i(TAG, "Getting '" + documentName + "' in '" + usersRef.getId() + "'.");
         final MutableLiveData<User> data = new MutableLiveData<>();
-        usersRef.document(documentName)
-                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            Log.w(TAG, "get failed with", e.fillInStackTrace());
-                            return;
-                        } if (documentSnapshot.exists()) {
-                            data.setValue(documentSnapshot.toObject(User.class));
-                        } else {
-                            Log.d(TAG, "Document '" + documentName + "' does not exist in '" + usersRef.getId() + "'.");
-                        }
-                    }
-                });
+        documentReference.addSnapshotListener((documentSnapshot, e) -> {
+            if (e != null) {
+                Log.w(TAG, "get failed with", e.fillInStackTrace());
+                return;
+            } if (documentSnapshot != null && documentSnapshot.exists()) {
+                data.setValue(documentSnapshot.toObject(User.class));
+            } else {
+                Log.d(TAG, "Document '" + documentName + "' does not exist in '" + usersRef.getId() + "'.");
+            }
+        });
         return data;
     }
 
@@ -163,9 +155,8 @@ public class FirebaseDataSource {
 
     public void uploadProfilePic(String email, Uri photoUri) {
         // Create a storage reference from our app
-        final String documentName = email;
-        String location = "usuarios/" + documentName + "/profilePic/profilePicture";
-        final DocumentReference documentReference = usersRef.document(documentName);
+        String location = "usuarios/" + email + "/profilePic/profilePicture";
+        final DocumentReference documentReference = usersRef.document(email);
 
         final StorageReference mStorageRef = storage.getReference(location);
         // Create file metadata including the content type
@@ -193,7 +184,7 @@ public class FirebaseDataSource {
                         .update(User.FIELD_PHOTO_URL, downloadUri.toString())
                         .addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
-                                Log.d(TAG, "Profile pic updated succesfully");
+                                Log.d(TAG, "ProfileFragment pic updated succesfully");
                             }
                             Log.w(TAG, "Failed on update profile pic: ", task1.getException());
                         });
@@ -233,12 +224,16 @@ public class FirebaseDataSource {
             if (e != null) {
                 Log.w(TAG, "Failed with ", e.fillInStackTrace());
                 return;
-            } if (snapshots.contains(POSTS)) {
-                aux.put(POSTS, snapshots.get(POSTS).toString());
-            } if (snapshots.contains(FOLLOWERS)) {
-                aux.put(FOLLOWERS, snapshots.get(FOLLOWERS).toString());
-            } if (snapshots.contains(FOLLOWS)) {
-                aux.put(FOLLOWS, snapshots.get(FOLLOWS).toString());
+            } if (snapshots != null) {
+                if (snapshots.contains(POSTS)) {
+                    aux.put(POSTS, snapshots.get(POSTS).toString());
+                }
+                if (snapshots.contains(FOLLOWERS)) {
+                    aux.put(FOLLOWERS, snapshots.get(FOLLOWERS).toString());
+                }
+                if (snapshots.contains(FOLLOWS)) {
+                    aux.put(FOLLOWS, snapshots.get(FOLLOWS).toString());
+                }
             }
             data.postValue(aux);
         });

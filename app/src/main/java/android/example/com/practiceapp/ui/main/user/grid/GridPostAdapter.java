@@ -1,4 +1,4 @@
-package android.example.com.practiceapp.ui.main.profile.grid;
+package android.example.com.practiceapp.ui.main.user.grid;
 
 import android.content.Context;
 import android.example.com.practiceapp.R;
@@ -22,12 +22,13 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
     private ProgressBar progressBar;
     private Context context;
     private MainViewModel model;
-    private OnPostSelectedListener callback;
 
     /**
      * Construct a new FirestorePagingAdapter from the given {@link FirestorePagingOptions}.
      *
      * @param options
+     * @param context
+     * @param progressBar
      */
     GridPostAdapter(@NonNull FirestorePagingOptions<Post> options, Context context, ProgressBar progressBar) {
         super(options);
@@ -37,10 +38,6 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
 
     void setViewModel(MainViewModel model) {
         this.model = model;
-    }
-
-    void setCallback(OnPostSelectedListener callback) {
-        this.callback = callback;
     }
 
     @Override
@@ -53,7 +50,7 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
     public GridPostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Create a new View
         View v = LayoutInflater.from(context).inflate(R.layout.item_grid_post, parent, false);
-        return new GridPostViewHolder(v, model, callback);
+        return new GridPostViewHolder(v, model);
     }
 
     @Override

@@ -1,7 +1,7 @@
-package android.example.com.practiceapp.ui.main.profile;
+package android.example.com.practiceapp.ui.main.user;
 
-import android.example.com.practiceapp.ui.main.profile.grid.GridPostFragment;
-import android.example.com.practiceapp.ui.main.profile.list.ListPostFragment;
+import android.example.com.practiceapp.ui.main.user.grid.GridPostFragment;
+import android.example.com.practiceapp.ui.main.user.list.ListPostFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;

@@ -13,6 +13,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.NavigationUI;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,25 +44,19 @@ import org.json.JSONObject;
 public class SearchFragment extends Fragment {
 
     public static final String TAG = SearchFragment.class.getSimpleName();
-    public static final String ALGOLIA_APP_ID = "62MAN5SB6V";
-    public static final String ALGOLIA_SEARCH_API_KEY = "a5b6026886482735cb7d88d84ce65848";
-    public static final String ALGOLIA_INDEX_NAME = "usuarios";
+    private static final String ALGOLIA_APP_ID = "62MAN5SB6V";
+    private static final String ALGOLIA_SEARCH_API_KEY = "a5b6026886482735cb7d88d84ce65848";
+    private static final String ALGOLIA_INDEX_NAME = "usuarios";
 
     private Context mContext;
     private MainViewModel model;
-    private Boolean userVisibleHint = true;
     private Searcher mSearcher;
     private Hits mHits;
     private AlgoliaResultsListener mResultListener;
     private AlgoliaErrorListener mErrorListener;
-    private OnSearchSelectedListener callback;
-
-    public void setOnSearchSelectedListener(OnSearchSelectedListener callback) {
-        this.callback = callback;
-    }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mContext = context;
     }
@@ -69,7 +66,7 @@ public class SearchFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(mContext);
-        model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
+        model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
     }
 
     @Nullable
@@ -83,34 +80,23 @@ public class SearchFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         EventBus.getDefault().register(this);
         bindView();
-        userVisibleHint = true;
         subscribeToSearcher();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mErrorListener = new AlgoliaErrorListener() {
-            @Override
-            public void onError(@NonNull Query query, @NonNull AlgoliaException error) {
-                Log.w(TAG, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage());
-                Toast.makeText(mContext, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-            }
+        mErrorListener = (query, error) -> {
+            Log.w(TAG, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage());
+            Toast.makeText(mContext, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         };
         mSearcher.registerErrorListener(mErrorListener);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        //Highlight the selected item has been done by NavigationView
-        ((MainActivity)getActivity()).setNavItemChecked(2);
-    }
 
     @Override
     public void onPause() {
-        userVisibleHint = false;
-        hideKeyboard();
+//        hideKeyboard();
         super.onPause();
     }
 
@@ -123,12 +109,9 @@ public class SearchFragment extends Fragment {
     }
 
     @Override
-    public boolean getUserVisibleHint() { return userVisibleHint; }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
-        new InstantSearch(getActivity(), menu, R.id.action_search, mSearcher); // link the Searcher to the UI
+        new InstantSearch(requireActivity(), menu, R.id.action_search, mSearcher); // link the Searcher to the UI
         mSearcher.search();
 
         final MenuItem itemSearch = menu.findItem(R.id.action_search);
@@ -153,6 +136,7 @@ public class SearchFragment extends Fragment {
             mHits.setVisibility(View.VISIBLE);
         };
         mSearcher.registerResultListener(mResultListener);
+
         mHits.setOnItemClickListener((recyclerView, position, v) -> {
             hideKeyboard();
             JSONObject json = mHits.get(position);
@@ -167,16 +151,16 @@ public class SearchFragment extends Fragment {
                     json.optString(User.FIELD_SEX, null),
                     null);
             model.select(user);
-            callback.onUserSelected();
+            Navigation.findNavController(v).navigate(R.id.action_search_to_profileSearched);
             Toast.makeText(mContext, "TODO", Toast.LENGTH_SHORT).show();
         });
     }
 
     private void hideKeyboard() {
         try {
-            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (getActivity().getCurrentFocus() != null) {
-                imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+            InputMethodManager imm = (InputMethodManager)requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (requireActivity().getCurrentFocus() != null) {
+                imm.hideSoftInputFromWindow(requireActivity().getCurrentFocus().getWindowToken(), 0);
             }
         } catch (Exception e) { e.printStackTrace(); }
     }

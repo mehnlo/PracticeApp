@@ -8,42 +8,33 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.User;
-import android.example.com.practiceapp.ui.main.search.SearchFragment;
-import android.example.com.practiceapp.ui.main.profile.UserFragment;
 import android.example.com.practiceapp.ui.post.PostActivity;
 import android.example.com.practiceapp.utilities.InjectorUtils;
-import android.example.com.practiceapp.utilities.OnSearchSelectedListener;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import android.view.MenuItem;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.bumptech.glide.Glide;
 import com.firebase.ui.auth.AuthMethodPickerLayout;
 import com.firebase.ui.auth.AuthUI;
@@ -52,46 +43,37 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.inject.Inject;
 
-
-public class MainActivity extends AppCompatActivity
-        implements
-        NavigationView.OnNavigationItemSelectedListener,
-        OnSearchSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int RC_SIGN_IN = 9001;
     private static final int MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 88;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
-    public static final String MAIN_FRAGMENT = "MAIN_FRAGMENT";
-    public static final String USER_FRAGMENT = "USER_FRAGMENT";
-    public static final String SEARCH_FRAGMENT = "SEARCH_FRAGMENT";
     public static final int PICK_PHOTO_CODE = 1046;
     public static final String PHOTO_URI = "photoUri";
     public static final String EMAIL = "email";
 
-    private MainFragment mainFragment = new MainFragment();
-    private UserFragment userFragment = new UserFragment();
-    private SearchFragment searchFragment = new SearchFragment();
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDreawerToggle;
-    private NavigationView navigationView;
+    private NavController navController;
+    private AppBarConfiguration appBarConfiguration;
+
     private ImageView mNavHeaderiv;
     private TextView mNavHeaderTitle;
     private TextView mNavHeaderSubtitle;
-
     private String mCurrentPhotoPath;
     private Uri mPhotoUri;
     @Inject
@@ -101,7 +83,9 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initDrawer();
+        if (savedInstanceState == null) {
+            setupNavigation();
+        }
         // View model
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(this.getApplicationContext());
         model = ViewModelProviders.of(this, factory).get(MainViewModel.class);
@@ -129,23 +113,6 @@ public class MainActivity extends AppCompatActivity
             return;
         }
         saveUser();
-        subscribeToUserSigned();
-    }
-
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDreawerToggle.syncState();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 
     @Override
@@ -160,6 +127,7 @@ public class MainActivity extends AppCompatActivity
                         Bundle extras = new Bundle();
                         extras.putString(PHOTO_URI, mPhotoUri.toString());
                         extras.putString(EMAIL, user.getEmail());
+
                         intentToPostActivity.putExtras(extras);
                         startActivity(intentToPostActivity);
                     }
@@ -187,66 +155,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
         
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        if (id == R.id.nav_home) {
-            if (fragmentManager.findFragmentByTag(MAIN_FRAGMENT) == null) { // First Time
-                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .commit();
-            } else if (!fragmentManager.findFragmentByTag(MAIN_FRAGMENT).getUserVisibleHint()) {
-                fragmentManager.beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(MAIN_FRAGMENT)
-                        .commit();
-            }
-        } else if (id == R.id.nav_profile) {
-            model.select(model.getUserSigned().getValue());
-            if (fragmentManager.findFragmentByTag(USER_FRAGMENT) == null) { // First Time
-                fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(USER_FRAGMENT)
-                        .commit();
-            } else if (!fragmentManager.findFragmentByTag(USER_FRAGMENT).getUserVisibleHint()) { // Other times
-                fragmentManager.beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(USER_FRAGMENT)
-                        .commit();
-            }
-        } else if (id == R.id.nav_search) {
-            if (fragmentManager.findFragmentByTag(SEARCH_FRAGMENT) == null) { // First time
-                fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(SEARCH_FRAGMENT)
-                        .commit();
-            } else if (!fragmentManager.findFragmentByTag(SEARCH_FRAGMENT).getUserVisibleHint()) { // Other times
-                fragmentManager.beginTransaction().replace(R.id.content_main, searchFragment, SEARCH_FRAGMENT)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .addToBackStack(SEARCH_FRAGMENT)
-                        .commit();
-            }
-        } else if (id == R.id.nav_invite) {
-            // TODO(2) request permissions to read contacts
-            showTodoToast();
-        }
-
-        item.setChecked(true);
-        // Set the action bar title
-        setTitle(item.getTitle());
-        // Close the navigation drawer        
-        mDrawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setNavItemChecked(0);
     }
 
     @Override
@@ -288,27 +196,35 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onAttachFragment(Fragment fragment) {
-        if (fragment instanceof SearchFragment) {
-            searchFragment = (SearchFragment) fragment;
-            searchFragment.setOnSearchSelectedListener(this);
-        }
-    }
+    private void setupNavigation() {
 
-    @Override
-    public void onUserSelected() {
-        // The user selected the email from the SearchFragment
-        // Do something here to display that user detail
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, userFragment, USER_FRAGMENT)
-                .addToBackStack(null)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit();
-    }
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationView navigationView = findViewById(R.id.nav_view);
 
-    private void initDrawer() {
+        View headerView = navigationView.getHeaderView(0);
+        mNavHeaderTitle = headerView.findViewById(R.id.nav_header_title);
+        mNavHeaderSubtitle = headerView.findViewById(R.id.nav_header_subtitle);
+        mNavHeaderiv = headerView.findViewById(R.id.nav_header_iv);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        Set<Integer> navGraphIds = new HashSet<>();
+        navGraphIds.add(R.id.home);
+        navGraphIds.add(R.id.profile);
+        navGraphIds.add(R.id.search);
+
+        appBarConfiguration = new AppBarConfiguration.Builder(navGraphIds)
+                .setDrawerLayout(drawerLayout)
+                .build();
+
+        // Show and Manage the Drawer and Back Icon
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
+        // Handle Navigation item clicks
+        // This works with no further action on your part if the menu and destination id's match
+
+        NavigationUI.setupWithNavController(navigationView, navController);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
@@ -316,32 +232,19 @@ public class MainActivity extends AppCompatActivity
                     .setAction("Action", null).show();
             dispatchTakePictureIntent();
         });
-
-        mDrawerLayout = findViewById(R.id.drawer_layout);
-        mDreawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
-                mDrawerLayout, /* DrawerLayout object */
-                toolbar, /* Toolbar */
-                R.string.navigation_drawer_open, /* "open drawer" description */
-                R.string.navigation_drawer_close) /* "close drawer" description */ {
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                hideKeyboard();
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (destination.getLabel() != null && destination.getLabel().equals(getString(R.string.action_profile))) {
+                model.select(model.getUserSigned().getValue());
             }
-        };
+        });
+    }
 
-        // Set the draawer toggle as the DrawerListener
-        mDrawerLayout.addDrawerListener(mDreawerToggle);
-
-        navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        navigationView.setCheckedItem(R.id.nav_home);
-
-        View headerView = navigationView.getHeaderView(0);
-
-        mNavHeaderTitle = headerView.findViewById(R.id.nav_header_title);
-        mNavHeaderSubtitle = headerView.findViewById(R.id.nav_header_subtitle);
-        mNavHeaderiv = headerView.findViewById(R.id.nav_header_iv);
+    @Override
+    public boolean onSupportNavigateUp() {
+        // Allows NavigationUI to support proper up navigation or the drawer layout
+        // drawer menu, depending on the situation
+        hideKeyboard();
+        return NavigationUI.navigateUp(navController, appBarConfiguration);
     }
 
     private void saveUser() {
@@ -368,18 +271,20 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "initUser()");
                 model.initUser(user.getEmail());
             }
+            subscribeToUserSigned();
         }
     }
 
     private void subscribeToUserSigned(){
         model.getUserSigned().observe(this, user -> {
-            if (user != null) {
+            if (user.getEmail() != null) {
                 updateNavHeader(user);
             }
         });
 
     }
 
+    // TODO Change to data library binding
     private void updateNavHeader(@NonNull User user) {
         mNavHeaderTitle.setText(!TextUtils.isEmpty(user.getDisplayName()) ? user.getDisplayName() : "Default User");
         mNavHeaderSubtitle.setText(!TextUtils.isEmpty(user.getEmail()) ? user.getEmail() : "defaultuser@practiceapp.com");
@@ -451,13 +356,6 @@ public class MainActivity extends AppCompatActivity
             if (getCurrentFocus() != null)
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public void setNavItemChecked (int id) {
-        Menu menu = navigationView.getMenu();
-        MenuItem menuItem = menu.getItem(id);
-        menuItem.setChecked(true);
-        setTitle(menuItem.getTitle());
     }
 
     private void dispatchTakePictureIntent() {
@@ -534,17 +432,13 @@ public class MainActivity extends AppCompatActivity
     public void signOut(View view) {
         Toast.makeText(this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
         signOut(MainActivity.this);
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, mainFragment, MAIN_FRAGMENT)
-                .commit();
+        navController.navigate(R.id.action_editProfileFragment_to_home);
         startSignIn();
     }
 
-    @NonNull
-    private Task<Void> signOut(@NonNull Context context) {
+    private void signOut(@NonNull Context context) {
         model.signOut();
-        AuthUI.getInstance().signOut(context);
-        return Tasks.whenAll(
-                signOutIdps(context));
+        Tasks.whenAll(signOutIdps(context), AuthUI.getInstance().signOut(context));
     }
     
     private Task<Void> signOutIdps(@NonNull Context context) {

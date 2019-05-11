@@ -18,7 +18,6 @@ public class MainFragment extends Fragment {
 
     public static final String TAG = MainFragment.class.getSimpleName();
     private Context context;
-    private Boolean userVisibleHint = true;
     private MainViewModel viewModel;
 
     public MainFragment() {}
@@ -35,38 +34,24 @@ public class MainFragment extends Fragment {
         return inflater.inflate(R.layout.content_main, container, false);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        //Highlight the selected item has been done by NavigationView
-        ((MainActivity)getActivity()).setNavItemChecked(0);
-    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        userVisibleHint = true;
-        subscribeToModel();
+        if (savedInstanceState == null) {
+            subscribeToModel();
+        }
     }
 
     private void subscribeToModel() {
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(context);
-        viewModel = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
-        viewModel.getFeed().observe(this, postEntries -> {
+        viewModel = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
+        viewModel.getFeed().observe(requireActivity(), postEntries -> {
             if (!postEntries.isEmpty()) {
                 Log.d(TAG, "Fetch feed successfully");
             }
         });
     }
 
-    @Override
-    public void onPause() {
-        userVisibleHint = false;
-        super.onPause();
-    }
 
-    @Override
-    public boolean getUserVisibleHint() {
-        return userVisibleHint;
-    }
 }

@@ -84,4 +84,6 @@
     <string name="sex_unspecified">Unspecified</string>
     <string name="action_update">Update</string>
     <string name="edit_profile_fragment_title">Edit Profile</string>
+    <string name="action_profile_searched">profile searched</string>
+    <string name="action_detail_post">detail post</string>
 </resources>

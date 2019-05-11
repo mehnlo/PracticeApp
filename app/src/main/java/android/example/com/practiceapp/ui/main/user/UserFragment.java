@@ -1,12 +1,10 @@
-package android.example.com.practiceapp.ui.main.profile;
+package android.example.com.practiceapp.ui.main.user;
 
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
-import android.example.com.practiceapp.ui.main.editProfile.EditProfileFragment;
-import android.example.com.practiceapp.ui.main.MainActivity;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.net.Uri;
@@ -15,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,15 +27,12 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 
 
-public class UserFragment extends Fragment {
-    private static final String TAG = UserFragment.class.getSimpleName();
+public abstract class UserFragment extends Fragment {
+    public static final String TAG = UserFragment.class.getSimpleName();
     private static final String UNFOLLOW = "UNFOLLOW";
     private static final String FOLLOW = "FOLLOW";
     private static final String EDIT_PROFILE = "EDIT_PROFILE";
-    private static final String EDIT_PROFILE_FRAGMENT = "EDIT_PROFILE_FRAGMENT";
-
     private Context mContext;
-    private boolean userVisibleHint = true;
     private ViewPager mViewPager;
     private TabLayout mTabLayout;
     private ImageView mProfilePic;
@@ -49,10 +43,8 @@ public class UserFragment extends Fragment {
     private TextView mFollowsCount;
     private Button mProfileButton;
 
-    public UserFragment() {}
-
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mContext = context;
     }
@@ -75,25 +67,13 @@ public class UserFragment extends Fragment {
         bindView();
         subscribeToModel();
         setupTabLayout();
-        userVisibleHint = true;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        //Highlight the selected item has been done by NavigationView
-        ((MainActivity)getActivity()).setNavItemChecked(1);
     }
 
     @Override
     public void onPause() {
-        userVisibleHint = false;
         stopListener();
         super.onPause();
     }
-
-    @Override
-    public boolean getUserVisibleHint() { return userVisibleHint; }
 
     private void stopListener() {
         // Stop listening to changes
@@ -103,8 +83,8 @@ public class UserFragment extends Fragment {
 
     private void subscribeToModel() {
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(mContext);
-        MainViewModel model = ViewModelProviders.of(getActivity(), factory).get(MainViewModel.class);
-        model.getUserSelected().observe(this, user -> {
+        MainViewModel model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
+        model.getUserSelected().observe(requireActivity(), user -> {
             if (user != null) {
                 setUpHeader(user);
             } else {
@@ -118,26 +98,17 @@ public class UserFragment extends Fragment {
                     case EDIT_PROFILE:
                         mProfileButton.setBackground(getResources().getDrawable(R.drawable.button));
                         mProfileButton.setText(getString(R.string.user_fragment_edit_profile));
-                        action = view -> {
-                            showToast("EditProfile");
-                            editProfile();
-                        };
+                        action = this::editProfile;
                         break;
                     case FOLLOW:
                         mProfileButton.setBackground(getResources().getDrawable(R.drawable.button));
                         mProfileButton.setText(getString(R.string.user_fragment_follow_profile));
-                        action = view -> {
-                            showToast("Follow");
-                            model.followUser();
-                        };
+                        action = view -> followUser(model);
                         break;
                     case UNFOLLOW:
                         mProfileButton.setBackground(getResources().getDrawable(R.drawable.btn_gradient));
                         mProfileButton.setText(getString(R.string.user_fragment_unfollow_profile));
-                        action = view -> {
-                            showToast("Unfollow");
-                            model.unfollowUser();
-                        };
+                        action = view -> unfollowUser(model);
                         break;
                 }
                 mProfileButton.setOnClickListener(action);
@@ -169,15 +140,19 @@ public class UserFragment extends Fragment {
         mProfileEmail.setText(!TextUtils.isEmpty(user.getEmail()) ? user.getEmail() : "");
     }
 
-    private void editProfile() {
-        getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.content_main, new EditProfileFragment(), EDIT_PROFILE_FRAGMENT)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .addToBackStack(EDIT_PROFILE_FRAGMENT)
-                .commit();
+    protected void editProfile(View view) { showToast("EditProfile"); }
+    private void followUser(MainViewModel model){
+        showToast("Follow");
+        model.followUser();
+    }
+    private void unfollowUser(MainViewModel model){
+        showToast("Unfollow");
+        model.unfollowUser();
     }
 
     private void bindView() {
         // Get the widgets reference from XML layout
+        assert getView() != null;
         mProfilePic = getView().findViewById(R.id.iv_profile_picture);
         mProfileName = getView().findViewById(R.id.tv_profile_name);
         mProfileEmail = getView().findViewById(R.id.tv_profile_email);
