@@ -52,12 +52,19 @@ public class PostViewModel extends ViewModel {
         this.email = email;
     }
 
+    public void setPhotoUrl(String photoUrl) {
+        Photo photo = new Photo();
+        photo.setPhotoUrl(photoUrl);
+        Post post = new Post();
+        post.setPhoto(photo);
+        postSelected.setValue(post);
+    }
+
     /**
      *
-     * @param photo
      * @return
      */
-    public MutableLiveData<Integer> uploadPhoto(Photo photo) {
-        return userRepo.uploadPhoto(email, photo);
+    public MutableLiveData<Integer> uploadPhoto() {
+        return userRepo.uploadPhoto(email, postSelected.getValue().getPhoto());
     }
 }

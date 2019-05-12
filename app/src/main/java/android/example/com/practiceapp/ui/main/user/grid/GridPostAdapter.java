@@ -4,8 +4,6 @@ import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
 import android.example.com.practiceapp.ui.main.MainViewModel;
-import android.example.com.practiceapp.utilities.OnPostSelectedListener;
-
 import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,8 +47,8 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
     @Override
     public GridPostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Create a new View
-        View v = LayoutInflater.from(context).inflate(R.layout.item_grid_post, parent, false);
-        return new GridPostViewHolder(v, model);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_grid_post, parent, false);
+        return new GridPostViewHolder(view, model);
     }
 
     @Override

@@ -70,6 +70,7 @@ public class PracticeAppRepository {
     /**
      * Database related operations
      */
+
     /**
      * Creates periodic sync tasks and checks to see if an immediate sync is required. If an
      * immediate sync is required, this method will take care of making sure that sync occurs.
@@ -85,7 +86,7 @@ public class PracticeAppRepository {
         // periodically
         mStatus = mFunctionsDataSource.scheduleRecurringFethcFeedSync();
 
-        // TODO (9) isFetchNeeded
+        // TODO (5) isFetchNeeded
     }
     /**
      * Deletes old weather data because we don't need to keep multiple day's data

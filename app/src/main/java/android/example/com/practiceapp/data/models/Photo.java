@@ -1,13 +1,24 @@
 package android.example.com.practiceapp.data.models;
 
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.BindingAdapter;
+
+import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.text.DateFormat.getDateInstance;
 
 @IgnoreExtraProperties
 public class Photo {
@@ -75,6 +86,7 @@ public class Photo {
         this.comments = comments;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Photo{" +
@@ -97,5 +109,15 @@ public class Photo {
         return result;
     }
 
+    @BindingAdapter("android:postImage")
+    public static void loadImage(ImageView view, String imageUrl) {
+        Glide.with(view.getContext()).load(imageUrl).into(view);
+    }
+
+    @BindingAdapter("android:text")
+    public static void setText(TextView view, Date date) {
+        String formatted = getDateInstance().format(date);
+        view.setText(formatted);
+    }
 
 }

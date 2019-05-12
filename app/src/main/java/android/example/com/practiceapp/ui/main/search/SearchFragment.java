@@ -4,17 +4,14 @@ import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.User;
-import android.example.com.practiceapp.ui.main.MainActivity;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 import android.example.com.practiceapp.utilities.InjectorUtils;
-import android.example.com.practiceapp.utilities.OnSearchSelectedListener;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
-import androidx.navigation.ui.NavigationUI;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -35,8 +32,7 @@ import com.algolia.instantsearch.core.model.AlgoliaResultsListener;
 import com.algolia.instantsearch.ui.helpers.InstantSearch;
 import com.algolia.instantsearch.ui.views.Hits;
 import com.algolia.instantsearch.ui.views.SearchBox;
-import com.algolia.search.saas.AlgoliaException;
-import com.algolia.search.saas.Query;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
@@ -48,7 +44,6 @@ public class SearchFragment extends Fragment {
     private static final String ALGOLIA_SEARCH_API_KEY = "a5b6026886482735cb7d88d84ce65848";
     private static final String ALGOLIA_INDEX_NAME = "usuarios";
 
-    private Context mContext;
     private MainViewModel model;
     private Searcher mSearcher;
     private Hits mHits;
@@ -56,16 +51,10 @@ public class SearchFragment extends Fragment {
     private AlgoliaErrorListener mErrorListener;
 
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        mContext = context;
-    }
-
-    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(mContext);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
     }
 
@@ -88,33 +77,26 @@ public class SearchFragment extends Fragment {
         super.onStart();
         mErrorListener = (query, error) -> {
             Log.w(TAG, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage());
-            Toast.makeText(mContext, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         };
         mSearcher.registerErrorListener(mErrorListener);
     }
 
-
     @Override
-    public void onPause() {
-//        hideKeyboard();
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
+    public void onDestroy() {
         mSearcher.unregisterResultListener(mResultListener);
         mSearcher.unregisterErrorListener(mErrorListener);
         EventBus.getDefault().unregister(this);
-        super.onStop();
+        super.onDestroy();
     }
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
-        new InstantSearch(requireActivity(), menu, R.id.action_search, mSearcher); // link the Searcher to the UI
+        final MenuItem itemSearch = menu.findItem(R.id.action_search);
+        new InstantSearch(requireActivity(), menu, itemSearch.getItemId(), mSearcher); // link the Searcher to the UI
         mSearcher.search();
 
-        final MenuItem itemSearch = menu.findItem(R.id.action_search);
         SearchBox searchBox = (SearchBox) itemSearch.getActionView();
         searchBox.disableFullScreen();
         itemSearch.expandActionView(); // open SearchBar on startup
@@ -148,11 +130,10 @@ public class SearchFragment extends Fragment {
                     json.optString(User.FIELD_EMAIL, null),
                     json.optString(User.FIELD_PHOTO_URL, null),
                     json.optString(User.FIELD_TLFNO, null),
-                    json.optString(User.FIELD_SEX, null),
+                    json.optString(User.FIELD_GENDER, null),
                     null);
             model.select(user);
             Navigation.findNavController(v).navigate(R.id.action_search_to_profileSearched);
-            Toast.makeText(mContext, "TODO", Toast.LENGTH_SHORT).show();
         });
     }
 

@@ -1,7 +1,9 @@
 package android.example.com.practiceapp.ui.main;
 
+import androidx.databinding.ObservableField;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 import androidx.work.WorkInfo;
 
@@ -34,6 +36,7 @@ public class MainViewModel extends ViewModel {
     private PracticeAppRepository mRepo;
     private MutableLiveData<List<PostEntry>> mFeed;
     private LiveData<WorkInfo> mStatus;
+
 
     public MainViewModel(PracticeAppRepository repo) {
         this.mRepo = repo;
@@ -215,6 +218,7 @@ public class MainViewModel extends ViewModel {
      */
     public void saveUser() {
         mRepo.update(userSigned.getValue());
+//        Log.d(TAG, "saveUser: userSigned value: " + userSigned.getValue().getGender());
     }
 
     /**

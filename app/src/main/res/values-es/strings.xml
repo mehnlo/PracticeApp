@@ -39,10 +39,10 @@
     <string name="private_data">Información privada</string>
     <string name="email_label">Dirección de email</string>
     <string name="tlf_label">Numero de teléfono</string>
-    <string name="sex_label">Sexo</string>
-    <string name="sex_female">Mujer</string>
-    <string name="sex_male">Hombre</string>
-    <string name="sex_unspecified">Sin especificar</string>
+    <string name="gender_label">Sexo</string>
+    <string name="gender_female">Mujer</string>
+    <string name="gender_male">Hombre</string>
+    <string name="gender_unspecified">Sin especificar</string>
     <string name="action_update">Actualizar</string>
     <string name="edit_profile_fragment_title">Editar Perfil</string>
     <string name="action_profile_searched">Perfil buscado</string>

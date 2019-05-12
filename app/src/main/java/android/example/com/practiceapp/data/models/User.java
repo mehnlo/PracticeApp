@@ -1,24 +1,28 @@
 package android.example.com.practiceapp.data.models;
 
-
+import android.widget.ImageView;
+import androidx.annotation.NonNull;
+import androidx.databinding.BindingAdapter;
+import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @IgnoreExtraProperties
 public class User {
-
     public static final String FIELD_UID = "uid";
     public static final String FIELD_USERNAME = "username";
     public static final String FIELD_DISPLAYNAME = "displayName";
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_PHOTO_URL = "photoUrl";
     public static final String FIELD_TLFNO = "tlfNo";
-    public static final String FIELD_SEX = "sex";
+    public static final String FIELD_GENDER = "gender";
     public static final String FIELD_LAST_LOGIN = "lastLogin";
 
     private String uid;
@@ -27,23 +31,28 @@ public class User {
     private String email;
     private String photoUrl;
     private String tlfNo;
-    private String sex;
+    private String gender;
     private Timestamp lastLogin;
+    @Exclude
+    private int genderIdItemPosition;
+    @Exclude
+    private final ArrayList<String> genders = new ArrayList<>();
 
     public User(){
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User (String uid, String username, String displayName, String email, String photoUrl, String tlfNo, String sex, Timestamp lastLogin ) {
+    public User (String uid, String username, String displayName, String email, String photoUrl, String tlfNo, String gender, Timestamp lastLogin ) {
         this.uid = uid;
         this.username = username;
         this.displayName = displayName;
         this.email = email;
         this.photoUrl = photoUrl;
         this.tlfNo = tlfNo;
-        this.sex = sex;
+        this.gender = gender;
         this.lastLogin = lastLogin;
     }
+
     public void setUser(User user) {
         uid = user.uid;
         username = user.username;
@@ -51,7 +60,7 @@ public class User {
         email = user.email;
         photoUrl = user.photoUrl;
         tlfNo = user.tlfNo;
-        sex = user.sex;
+        gender = user.gender;
         lastLogin = user.lastLogin;
     }
     public String getUid() {
@@ -98,10 +107,27 @@ public class User {
 
     public void setTlfNo(String tlfNo) { this.tlfNo = tlfNo; }
 
-    public String getSex() { return sex; }
+    public String getGender() { return gender; }
 
-    public void setSex(String sex) { this.sex = sex; }
+    public void setGender(String gender) {
+        this.gender = gender;
+        if (genders.isEmpty()){
+            String[] values = {"unspecified", "male", "female"};
+            Collections.addAll(genders, values);
+        }
+        setGenderIdItemPosition(genders.indexOf(gender));
+    }
 
+    public int getGenderIdItemPosition() {
+        return genderIdItemPosition;
+    }
+
+    public void setGenderIdItemPosition(int genderIdItemPosition) {
+        this.genderIdItemPosition = genderIdItemPosition;
+        this.gender = genders.get(genderIdItemPosition);
+    }
+
+    @NonNull
     @Override
     public String toString() {
         return "User{" +
@@ -111,7 +137,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", photoUrl='" + photoUrl + '\'' +
                 ", tlfNo='" + tlfNo + '\'' +
-                ", sex='" + sex + '\'' +
+                ", gender='" + gender + '\'' +
                 ", lastLogin=" + lastLogin.toString() +
                 '}';
     }
@@ -125,8 +151,16 @@ public class User {
         if (email != null) result.put(FIELD_EMAIL, email);
         if (photoUrl != null) result.put(FIELD_PHOTO_URL, photoUrl);
         if (tlfNo != null) result.put(FIELD_TLFNO, tlfNo);
-        if (sex != null) result.put(FIELD_SEX, sex);
+        if (gender != null) result.put(FIELD_GENDER, gender);
         result.put(FIELD_LAST_LOGIN, FieldValue.serverTimestamp());
         return result;
+    }
+
+    @BindingAdapter({"android:profileImage"})
+    public static void loadImage(ImageView view, String imageUrl) {
+        Glide.with(view.getContext())
+                .load(imageUrl)
+                .circleCrop()
+                .into(view);
     }
 }

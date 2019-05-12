@@ -1,13 +1,16 @@
 package android.example.com.practiceapp.ui.main;
 
 import android.Manifest;
+
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.User;
+import android.example.com.practiceapp.databinding.ActivityMainBinding;
+import android.example.com.practiceapp.databinding.NavHeaderBinding;
 import android.example.com.practiceapp.ui.post.PostActivity;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.net.Uri;
@@ -19,23 +22,15 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
-import com.bumptech.glide.Glide;
 import com.firebase.ui.auth.AuthMethodPickerLayout;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
@@ -52,12 +47,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
-import javax.inject.Inject;
-
+// TODO (2) Separate Signed Logic from Main Activity
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -68,40 +60,66 @@ public class MainActivity extends AppCompatActivity {
     public static final String PHOTO_URI = "photoUri";
     public static final String EMAIL = "email";
 
+    private ActivityMainBinding mBinding;
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
 
-    private ImageView mNavHeaderiv;
-    private TextView mNavHeaderTitle;
-    private TextView mNavHeaderSubtitle;
     private String mCurrentPhotoPath;
     private Uri mPhotoUri;
-    @Inject
     private MainViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            setupNavigation();
-        }
-        // View model
-        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(this.getApplicationContext());
-        model = ViewModelProviders.of(this, factory).get(MainViewModel.class);
+        bindView();
+        setupNavigation();
 
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(false);
 
-        Intent intentThatStartedThisActivity = getIntent();
-        if (intentThatStartedThisActivity.hasExtra(Intent.EXTRA_TEXT)) {
+        if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
+            Bundle extras = getIntent().getExtras();
             Log.d(TAG, "onCreate: hasExtra(Intent.EXTRA_TEXT)");
-            if (intentThatStartedThisActivity.getIntExtra(Intent.EXTRA_TEXT, 0) == RESULT_OK){
+            assert extras != null;
+            if (extras.getInt(Intent.EXTRA_TEXT, 0) == RESULT_OK){
                 Toast.makeText(this, R.string.image_result_ok, Toast.LENGTH_SHORT).show();
-            } else if (intentThatStartedThisActivity.getIntExtra(Intent.EXTRA_TEXT, 0) == RESULT_CANCELED){
+            } else if (extras.getInt(Intent.EXTRA_TEXT, 0) == RESULT_CANCELED){
                 Toast.makeText(this, R.string.image_result_cancelled, Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void bindView() {
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        NavHeaderBinding navHeader = NavHeaderBinding.bind(mBinding.navView.getHeaderView(0));
+        mBinding.setLifecycleOwner(this);
+        navHeader.setLifecycleOwner(this);
+        // View model
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(this.getApplicationContext());
+        model = ViewModelProviders.of(this, factory).get(MainViewModel.class);
+        navHeader.setViewmodel(model);
+    }
+
+    private void setupNavigation() {
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        setSupportActionBar(mBinding.toolbar);
+
+        appBarConfiguration = new AppBarConfiguration.Builder(R.id.home, R.id.profile, R.id.search)
+                .setDrawerLayout(mBinding.drawerLayout)
+                .build();
+
+        // Show and Manage the Drawer and Back Icon
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
+        // Handle Navigation item clicks
+        // This works with no further action on your part if the menu and destination id's match
+
+        NavigationUI.setupWithNavController(mBinding.navView, navController);
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (destination.getLabel() != null && destination.getLabel().equals(getString(R.string.action_profile))) {
+                model.select(model.getUserSigned().getValue());
+            }
+        });
     }
 
     @Override
@@ -196,49 +214,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupNavigation() {
-
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-
-        View headerView = navigationView.getHeaderView(0);
-        mNavHeaderTitle = headerView.findViewById(R.id.nav_header_title);
-        mNavHeaderSubtitle = headerView.findViewById(R.id.nav_header_subtitle);
-        mNavHeaderiv = headerView.findViewById(R.id.nav_header_iv);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        Set<Integer> navGraphIds = new HashSet<>();
-        navGraphIds.add(R.id.home);
-        navGraphIds.add(R.id.profile);
-        navGraphIds.add(R.id.search);
-
-        appBarConfiguration = new AppBarConfiguration.Builder(navGraphIds)
-                .setDrawerLayout(drawerLayout)
-                .build();
-
-        // Show and Manage the Drawer and Back Icon
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-
-        // Handle Navigation item clicks
-        // This works with no further action on your part if the menu and destination id's match
-
-        NavigationUI.setupWithNavController(navigationView, navController);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> {
-            Snackbar.make(view, R.string.action_take_picture, Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            dispatchTakePictureIntent();
-        });
-        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getLabel() != null && destination.getLabel().equals(getString(R.string.action_profile))) {
-                model.select(model.getUserSigned().getValue());
-            }
-        });
-    }
-
     @Override
     public boolean onSupportNavigateUp() {
         // Allows NavigationUI to support proper up navigation or the drawer layout
@@ -248,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveUser() {
-//        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         // The user has already signed in
         if (user != null) {
@@ -260,10 +234,9 @@ public class MainActivity extends AppCompatActivity {
                     user.getEmail(),
                     user.getPhotoUrl() == null ? null : user.getPhotoUrl().toString(),
                     null,null,null);
-            if (user.getMetadata().getCreationTimestamp() == user.getMetadata().getLastSignInTimestamp()) {
+            if (user.getMetadata()!= null && user.getMetadata().getCreationTimestamp() == user.getMetadata().getLastSignInTimestamp()) {
                 // The user is the first time that sign in
                 Log.d(TAG, "saveUser()");
-                saveSharedPreferences(user);
                 model.createUser(userSigned);
 
             } else {
@@ -271,54 +244,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "initUser()");
                 model.initUser(user.getEmail());
             }
-            subscribeToUserSigned();
         }
-    }
-
-    private void subscribeToUserSigned(){
-        model.getUserSigned().observe(this, user -> {
-            if (user.getEmail() != null) {
-                updateNavHeader(user);
-            }
-        });
-
-    }
-
-    // TODO Change to data library binding
-    private void updateNavHeader(@NonNull User user) {
-        mNavHeaderTitle.setText(!TextUtils.isEmpty(user.getDisplayName()) ? user.getDisplayName() : "Default User");
-        mNavHeaderSubtitle.setText(!TextUtils.isEmpty(user.getEmail()) ? user.getEmail() : "defaultuser@practiceapp.com");
-        if(!TextUtils.isEmpty(user.getPhotoUrl())) {
-            Uri uri = Uri.parse(user.getPhotoUrl());
-            Glide.with(this)
-                    .load(uri)
-                    .circleCrop()
-                    .into(mNavHeaderiv);
-        }
-    }
-
-    private User loadSharedPreferences() {
-        SharedPreferences prefs = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
-        String username = prefs.getString(getString(R.string.account_username_key), "");
-        String displayName = prefs.getString(getString(R.string.account_name_key), "");
-        String email = prefs.getString(getString(R.string.account_email_key), "");
-        String photoUri = prefs.getString(getString(R.string.account_photo_key), "");
-        String tlfNo = prefs.getString(getString(R.string.account_tlfno_key), "");
-        String sex = prefs.getString(getString(R.string.account_sex_key), "");
-
-
-        return new User(null, username, displayName, email, photoUri, tlfNo ,sex, null);
-    }
-
-    private void saveSharedPreferences(FirebaseUser user) {
-        SharedPreferences sharedPreferences = this.getSharedPreferences(getString(R.string.pref_file_key), MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(getString(R.string.account_email_key), user.getEmail());
-        editor.putString(getString(R.string.account_name_key), user.getDisplayName());
-        editor.putString(getString(R.string.account_photo_key), user.getPhotoUrl() == null ? "" : user.getPhotoUrl().toString());
-        editor.putLong(getString(R.string.account_creation_date_key), user.getMetadata().getCreationTimestamp());
-        editor.putLong(getString(R.string.account_last_sign_in_key), user.getMetadata().getLastSignInTimestamp());
-        editor.apply();
     }
 
     private boolean shouldStartSignIn() {
@@ -358,7 +284,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    private void dispatchTakePictureIntent() {
+    public void dispatchTakePictureIntent(View view) {
+        Snackbar.make(view, R.string.action_take_picture, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
         String[] permissionsWeNeed = new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE };
         int permissionCheck = ContextCompat.checkSelfPermission(this, permissionsWeNeed[0]);
         if (permissionCheck != PackageManager.PERMISSION_DENIED) {
@@ -398,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, permissionsWeNeed, MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
         }
     }
-   
+
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmmss", new Locale("es", "ES")).format(new Date());
@@ -425,8 +353,8 @@ public class MainActivity extends AppCompatActivity {
         this.sendBroadcast(mediaScanIntent);
     }
 
-    private void showTodoToast() {
-        Toast.makeText(this, "TODO: Implement", Toast.LENGTH_SHORT).show();
+    private void showToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     public void signOut(View view) {
@@ -446,11 +374,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showOptions(View view) {
-        Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show();
+        showToast("TODO: showOptions()");
     }
 
     public void onPickPhoto(View view) {
-        showTodoToast();
         // Create intent for picking a photo from the gallery
         Intent intent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -461,4 +388,6 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, PICK_PHOTO_CODE);
         }
     }
+
+    public void deleteAccount(View view) { showToast("TODO: deleteAccount()"); }
 }

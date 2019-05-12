@@ -1,9 +1,11 @@
 package android.example.com.practiceapp.ui.post;
 
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Photo;
+import android.example.com.practiceapp.databinding.ActivityPostBinding;
 import android.example.com.practiceapp.ui.main.MainActivity;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.net.Uri;
@@ -24,41 +26,41 @@ public class PostActivity extends AppCompatActivity {
     private static final String TAG = PostActivity.class.getSimpleName();
     public static final String PHOTO_URI = "photoUri";
     public static final String EMAIL = "email";
-    private ImageView mPostPhoto;
-    private EditText mPostTitle;
-//    private String mPhotoPath;
-    private Uri mPhotoUri;
+    private ActivityPostBinding binding;
     private PostViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_post);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(getString(R.string.new_post));
         bindView();
-        subscribeToModel();
         captureIntent();
+        setupNavigation();
     }
 
-    private void subscribeToModel() {
+    private void bindView() {
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_post);
+        binding.setLifecycleOwner(this);
         PostViewModelFactory factory = InjectorUtils.providePostViewModelFactory(this.getApplicationContext());
         viewModel = ViewModelProviders.of(this, factory).get(PostViewModel.class);
+        binding.setViewmodel(viewModel);
     }
 
-    // Establecer la foto hecha una vez se tenga el focus de la pantalla
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            setPic();
+    private void captureIntent() {
+        Bundle extras = this.getIntent().getExtras();
+        if (extras != null) {
+            viewModel.setEmail(extras.getString(EMAIL));
+            viewModel.setPhotoUrl(extras.getString(PHOTO_URI));
         }
+    }
+
+    private void setupNavigation() {
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.new_post));
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home){
+        if (item.getItemId() == android.R.id.home){
             onBackPressed();
         } else if (item.getItemId() == R.id.action_send) {
             send();
@@ -66,13 +68,9 @@ public class PostActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setPic() {
-        Glide.with(this).load(mPhotoUri).into(mPostPhoto);
-    }
-
     public void send() {
-        mPostTitle.onEditorAction(EditorInfo.IME_ACTION_DONE);
-        mPostTitle.setEnabled(false);
+        binding.etPostTitle.onEditorAction(EditorInfo.IME_ACTION_DONE);
+        binding.etPostTitle.setEnabled(false);
         showProgressLoading();
         uploadPhoto();
     }
@@ -83,10 +81,7 @@ public class PostActivity extends AppCompatActivity {
         return true;
     }
     private void uploadPhoto(){
-        // Create a storage reference from our app
-        Photo photo = new Photo(mPostTitle.getText().toString(), mPhotoUri.toString(), null, null, null);
-
-        viewModel.uploadPhoto(photo).observe(this, integer -> {
+        viewModel.uploadPhoto().observe(this, integer -> {
             if (integer != null) {
                 hideProgressLoading();
                 Intent intentToStartMainActivity = new Intent(this, MainActivity.class);
@@ -94,22 +89,6 @@ public class PostActivity extends AppCompatActivity {
                 startActivity(intentToStartMainActivity);
             }
         });
-    }
-    private void captureIntent() {
-        Log.d(TAG, "captureIntent: ");
-        Bundle extras = this.getIntent().getExtras();
-        if (extras != null) {
-            mPhotoUri = Uri.parse(extras.getString(PHOTO_URI));
-            Log.d(TAG, "mPhotoUri: '" + mPhotoUri.toString() + "'.");
-            String email = extras.getString(EMAIL);
-            Log.d(TAG, "email: '" + email + "'.");
-            viewModel.setEmail(email);
-        }
-    }
-
-    private void bindView() {
-        mPostPhoto = findViewById(R.id.iv_post_photo);
-        mPostTitle = findViewById(R.id.et_post_title);
     }
 
     private void showProgressLoading(){

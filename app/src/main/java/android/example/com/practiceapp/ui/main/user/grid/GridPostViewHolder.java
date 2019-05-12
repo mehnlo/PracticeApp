@@ -1,7 +1,6 @@
 package android.example.com.practiceapp.ui.main.user.grid;
 
 import android.example.com.practiceapp.ui.main.MainViewModel;
-import android.example.com.practiceapp.utilities.OnPostSelectedListener;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
 import android.net.Uri;
