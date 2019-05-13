@@ -1,5 +1,6 @@
 package android.example.com.practiceapp.data.database;
 
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -41,4 +42,9 @@ public class PostEntry {
     public String getPhotoUrl() { return photoUrl; }
 
     public Date getDate() { return date; }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        return super.equals(obj);
+    }
 }

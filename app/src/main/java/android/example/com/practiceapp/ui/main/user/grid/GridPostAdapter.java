@@ -7,7 +7,6 @@ import android.example.com.practiceapp.databinding.ItemGridPostBinding;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

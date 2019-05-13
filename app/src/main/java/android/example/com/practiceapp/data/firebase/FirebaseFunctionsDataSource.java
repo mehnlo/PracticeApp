@@ -3,22 +3,18 @@ package android.example.com.practiceapp.data.firebase;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import android.content.Context;
-import android.content.Intent;
 import android.example.com.practiceapp.AppExecutors;
 import android.example.com.practiceapp.data.database.PostEntry;
 import android.util.Log;
-
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.FirebaseFunctionsException;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -97,7 +93,6 @@ public class FirebaseFunctionsDataSource {
                 }
                 try {
                     Object result = response.getResult().getData();
-                    Log.d(TAG, result.toString());
                     // Parse the JSON into a list of Posts
                     PostsResponse postsResponse = new PostsJsonParser().parse(result);
                     Log.d(TAG, "JSON Parsing finished");

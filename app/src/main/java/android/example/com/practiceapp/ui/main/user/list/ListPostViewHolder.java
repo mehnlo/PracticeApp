@@ -3,7 +3,6 @@ package android.example.com.practiceapp.ui.main.user.list;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
 import android.example.com.practiceapp.databinding.ItemListPostBinding;
-import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,15 +11,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.bumptech.glide.Glide;
-
-import java.text.SimpleDateFormat;
 
 class ListPostViewHolder extends RecyclerView.ViewHolder {
-    public ItemListPostBinding itemBinding;
+    private ItemListPostBinding itemBinding;
 
     ListPostViewHolder(ItemListPostBinding itemView) {
         super(itemView.getRoot());
@@ -34,9 +27,10 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
        itemBinding.btItemOptions.setOnClickListener(this::onClick);
     }
 
-    public void onClick(View view) {
+    private void onClick(View view) {
         showPopupMenu(itemBinding.btItemOptions);
     }
+
     private void showPopupMenu(ImageButton mButton) {
         // inflate menu
         PopupMenu popup = new PopupMenu(mButton.getContext(), mButton);
@@ -45,6 +39,7 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
         popup.setOnMenuItemClickListener(new MyMenuItemClickListener());
         popup.show();
     }
+
     private class MyMenuItemClickListener implements PopupMenu.OnMenuItemClickListener {
         private final String TAG = MyMenuItemClickListener.class.getSimpleName();
         MyMenuItemClickListener() {}

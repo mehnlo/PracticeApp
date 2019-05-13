@@ -4,19 +4,14 @@ import android.example.com.practiceapp.databinding.ItemGridPostBinding;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
-import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ImageView;
-
-import com.bumptech.glide.Glide;
 
 public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnClickListener{
-    public ItemGridPostBinding itemBinding;
+    private ItemGridPostBinding itemBinding;
     private MainViewModel model;
 
     GridPostViewHolder(@NonNull ItemGridPostBinding itemView, MainViewModel model) {
@@ -25,15 +20,15 @@ public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnCli
         itemBinding = itemView;
         itemBinding.cardView.setOnClickListener(this);
     }
+
     public void bind(Post item) {
         itemBinding.setItem(item);
         itemBinding.executePendingBindings();
     }
+
     @Override
     public void onClick(View view) {
         model.select(itemBinding.getItem());
         Navigation.findNavController(view).navigate(R.id.action_global_user_to_defailPost);
     }
-
-
 }

@@ -2,8 +2,9 @@ package android.example.com.practiceapp.data;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.paging.LivePagedListBuilder;
+import androidx.paging.PagedList;
 import androidx.work.WorkInfo;
-
 import android.example.com.practiceapp.AppExecutors;
 import android.example.com.practiceapp.data.database.PostDao;
 import android.example.com.practiceapp.data.database.PostEntry;
@@ -15,11 +16,8 @@ import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.utilities.PracticeAppDateUtils;
 import android.net.Uri;
 import android.util.Log;
-
 import com.google.firebase.firestore.Query;
-
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +31,7 @@ public class PracticeAppRepository {
 
     private static PracticeAppRepository sInstance;
     private final PostDao mPostDao;
+    private final LiveData<PagedList<PostEntry>> postList;
     private final FirebaseDataSource mFirebaseDataSource;
     private final FirebaseFunctionsDataSource mFunctionsDataSource;
     private final AppExecutors mExecutors;
@@ -54,6 +53,7 @@ public class PracticeAppRepository {
             mPostDao.bulkInsert(newFeedFromNetwork);
             Log.d(TAG, "New values inserted");
         }));
+        postList = new LivePagedListBuilder<>(mPostDao.getCurrentFeed(), 15).build();
 
     }
     public synchronized static PracticeAppRepository getInstance(PostDao postDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
@@ -201,9 +201,9 @@ public class PracticeAppRepository {
      *
      * @return
      */
-    public LiveData<List<PostEntry>> getCurrentFeed() {
+    public LiveData<PagedList<PostEntry>> getCurrentFeed() {
         initializeData();
-        return mPostDao.getCurrentFeed();
+        return postList;
     }
 
     public LiveData<WorkInfo> getStatus() { return mStatus; }

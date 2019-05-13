@@ -1,12 +1,10 @@
 package android.example.com.practiceapp.ui.main;
 
-import androidx.databinding.ObservableField;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
+import androidx.paging.PagedList;
 import androidx.work.WorkInfo;
-
 import android.example.com.practiceapp.data.PracticeAppRepository;
 import android.example.com.practiceapp.data.database.PostEntry;
 import android.example.com.practiceapp.data.models.Post;
@@ -14,10 +12,7 @@ import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
-
 import com.google.firebase.firestore.Query;
-
-import java.util.List;
 
 /**
  * ViewModel for {@link MainActivity}
@@ -34,7 +29,6 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<String> followsCount;
     private MutableLiveData<Post> postSelected;
     private PracticeAppRepository mRepo;
-    private MutableLiveData<List<PostEntry>> mFeed;
     private LiveData<WorkInfo> mStatus;
 
 
@@ -43,7 +37,6 @@ public class MainViewModel extends ViewModel {
         this.userSigned = new MutableLiveData<>();
         this.userSelected = new MutableLiveData<>();
         this.postSelected = new MutableLiveData<>();
-        mFeed = new MutableLiveData<>();
         mStatus = new MutableLiveData<>();
         mIsSigningIn = false;
     }
@@ -195,11 +188,6 @@ public class MainViewModel extends ViewModel {
         Log.d(TAG, "initUser()");
         userSigned = mRepo.get(email);
         select(userSigned.getValue());
-        mRepo.getCurrentFeed().observeForever(postEntries -> {
-            if (!postEntries.isEmpty()) {
-                mFeed.postValue(postEntries);
-            }
-        });
     }
 
     /**
@@ -218,7 +206,6 @@ public class MainViewModel extends ViewModel {
      */
     public void saveUser() {
         mRepo.update(userSigned.getValue());
-//        Log.d(TAG, "saveUser: userSigned value: " + userSigned.getValue().getGender());
     }
 
     /**
@@ -243,7 +230,7 @@ public class MainViewModel extends ViewModel {
 
     public MutableLiveData<Post> getPostSelected() { return postSelected; }
 
-    public LiveData<List<PostEntry>> getFeed() { return mFeed; }
+    public LiveData<PagedList<PostEntry>> getFeed() { return mRepo.getCurrentFeed(); }
 
     public LiveData<WorkInfo> getStatus() { return mStatus; }
 }

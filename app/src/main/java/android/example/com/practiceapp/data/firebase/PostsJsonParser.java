@@ -2,13 +2,10 @@ package android.example.com.practiceapp.data.firebase;
 
 import android.example.com.practiceapp.data.database.PostEntry;
 import androidx.annotation.Nullable;
-
 import com.google.firebase.Timestamp;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.Date;
 
 /**
