@@ -38,12 +38,11 @@ public abstract class UserFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user, container, false);
-        View view = binding.getRoot();
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
         binding.headerUser.setViewmodel(model);
         binding.headerUser.setLifecycleOwner(this);
-        return view;
+        return binding.getRoot();
     }
 
     @Override

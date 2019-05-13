@@ -3,8 +3,11 @@ package android.example.com.practiceapp.ui.main.user.grid;
 import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
+import android.example.com.practiceapp.databinding.ItemGridPostBinding;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +19,10 @@ import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 import com.firebase.ui.firestore.paging.LoadingState;
 
 public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHolder> {
-
-    private ProgressBar progressBar;
-    private Context context;
+    private ProgressBar mProgressBar;
+    private Context mContext;
     private MainViewModel model;
+
 
     /**
      * Construct a new FirestorePagingAdapter from the given {@link FirestorePagingOptions}.
@@ -30,8 +33,8 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
      */
     GridPostAdapter(@NonNull FirestorePagingOptions<Post> options, Context context, ProgressBar progressBar) {
         super(options);
-        this.context = context;
-        this.progressBar = progressBar;
+        mContext = context;
+        mProgressBar = progressBar;
     }
 
     void setViewModel(MainViewModel model) {
@@ -39,16 +42,16 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull GridPostViewHolder holder, int position, @NonNull Post model) {
-        holder.bind(model);
+    protected void onBindViewHolder(@NonNull GridPostViewHolder holder, int position, @NonNull Post item) {
+        holder.bind(item);
     }
 
     @NonNull
     @Override
     public GridPostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Create a new View
-        View view = LayoutInflater.from(context).inflate(R.layout.item_grid_post, parent, false);
-        return new GridPostViewHolder(view, model);
+        ItemGridPostBinding binding = DataBindingUtil.inflate(
+                LayoutInflater.from(parent.getContext()), R.layout.item_grid_post, parent, false);
+        return new GridPostViewHolder(binding, model);
     }
 
     @Override
@@ -56,13 +59,13 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
         switch (state) {
             case LOADING_INITIAL:
             case LOADING_MORE:
-                progressBar.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.VISIBLE);
                 break;
             case LOADED:
-                progressBar.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
                 break;
             case FINISHED:
-                progressBar.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
                 showToast("Reached end of data set.");
                 break;
             case ERROR:
@@ -73,6 +76,6 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
     }
 
     private void showToast(@NonNull String message) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
     }
 }

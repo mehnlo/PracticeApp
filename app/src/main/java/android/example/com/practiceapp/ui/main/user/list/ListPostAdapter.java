@@ -4,6 +4,9 @@ import android.content.Context;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
+
+import android.example.com.practiceapp.databinding.ItemListPostBinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +18,8 @@ import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 import com.firebase.ui.firestore.paging.LoadingState;
 
 public class ListPostAdapter extends FirestorePagingAdapter<Post, ListPostViewHolder> {
-
-    private ProgressBar progressBar;
-    private Context context;
+    private ProgressBar mProgressBar;
+    private Context mContext;
 
     /**
      * Construct a new FirestorePagingAdapter from the given {@link FirestorePagingOptions}.
@@ -26,33 +28,33 @@ public class ListPostAdapter extends FirestorePagingAdapter<Post, ListPostViewHo
      */
     ListPostAdapter(@NonNull FirestorePagingOptions<Post> options, Context context, ProgressBar progressBar) {
         super(options);
-        this.context = context;
-        this.progressBar = progressBar;
+        mContext = context;
+        mProgressBar = progressBar;
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull ListPostViewHolder holder, int position, @NonNull Post model) {
-        holder.bind(model);
+    protected void onBindViewHolder(@NonNull ListPostViewHolder holder, int position, @NonNull Post item) {
+        holder.bind(item);
     }
 
     @NonNull
     @Override
     public ListPostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_post, parent, false);
-        return new ListPostViewHolder(view);
+        ItemListPostBinding binding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.item_list_post, parent, false);
+        return new ListPostViewHolder(binding);
     }
 
     @Override protected void onLoadingStateChanged(@NonNull LoadingState state) {
         switch (state) {
             case LOADING_INITIAL:
             case LOADING_MORE:
-                progressBar.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.VISIBLE);
                 break;
             case LOADED:
-                progressBar.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
                 break;
             case FINISHED:
-                progressBar.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
                 showToast("Reached end of data set.");
                 break;
             case ERROR:
@@ -63,7 +65,7 @@ public class ListPostAdapter extends FirestorePagingAdapter<Post, ListPostViewHo
     }
 
     private void showToast(@NonNull String message) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
     }
 
 }

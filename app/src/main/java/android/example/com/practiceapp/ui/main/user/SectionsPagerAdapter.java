@@ -12,8 +12,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
  */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    public static final String TAG = SectionsPagerAdapter.class.getSimpleName();
-
     SectionsPagerAdapter(FragmentManager fm) {
         super(fm);
     }

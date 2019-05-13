@@ -1,5 +1,6 @@
 package android.example.com.practiceapp.ui.main.user.grid;
 
+import android.example.com.practiceapp.databinding.ItemGridPostBinding;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Post;
@@ -15,34 +16,22 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 
 public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnClickListener{
-    private static final String TAG = GridPostViewHolder.class.getSimpleName();
-    private ImageView mImageView;
-    private Post item;
+    public ItemGridPostBinding itemBinding;
     private MainViewModel model;
 
-    GridPostViewHolder(@NonNull View itemView, MainViewModel model) {
-        super(itemView);
+    GridPostViewHolder(@NonNull ItemGridPostBinding itemView, MainViewModel model) {
+        super(itemView.getRoot());
         this.model = model;
-        mImageView = itemView.findViewById(R.id.imageView);
-        itemView.setOnClickListener(this);
+        itemBinding = itemView;
+        itemBinding.cardView.setOnClickListener(this);
     }
-
-    void bind(@NonNull Post item) {
-        this.item = item;
-        Uri uri;
-        try {
-            uri = Uri.parse(item.getPhoto().getPhotoUrl());
-            Glide.with(itemView.getContext())
-                    .load(uri)
-                    .override(mImageView.getLayoutParams().width)
-                    .into(mImageView);
-        } catch (NullPointerException e) {
-            Log.w(TAG, "bind: parse photo uri", e);
-        }
+    public void bind(Post item) {
+        itemBinding.setItem(item);
+        itemBinding.executePendingBindings();
     }
     @Override
     public void onClick(View view) {
-        model.select(item);
+        model.select(itemBinding.getItem());
         Navigation.findNavController(view).navigate(R.id.action_global_user_to_defailPost);
     }
 

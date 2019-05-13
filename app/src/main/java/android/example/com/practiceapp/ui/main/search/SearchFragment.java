@@ -54,6 +54,7 @@ public class SearchFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        EventBus.getDefault().register(this);
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
     }
@@ -67,7 +68,6 @@ public class SearchFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        EventBus.getDefault().register(this);
         bindView();
         subscribeToSearcher();
     }
