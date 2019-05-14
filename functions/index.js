@@ -149,65 +149,60 @@ exports.loadFeed = functions.https.onCall((data, context) => {
     const email = context.auth.token.email || null;
     const db = admin.firestore();
     let promises = [];
+    let userFollowing = [email];
     let result;
     // Checking that the user is authenticated.
     if (!context.auth) {
         // Throwing an HttpsError so that the client gets the error details
         throw new functions.https.HttpsError('failed-precondition', 'The function must be called while authenticated.');
     }
-    function buildPromises() {
-        // eslint-disable-next-line promise/catch-or-return
+
+    /**
+     * Initialize userFollowing array with the user I'm following
+     * @returns {Promise<any>}
+     */
+    function getFollowing() {
         return new Promise((resolve, reject) => {
-            // Obtain all users that I am following
             // eslint-disable-next-line promise/catch-or-return
-            db.collection(`following/${email}/userFollowing`).get().then(querySnapshot => {
-                // eslint-disable-next-line promise/always-return
-                if (querySnapshot.empty) {
-                    console.log(`No matching documents in following/${email}/userFollowing.`);
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject(`No matching documents in following/${email}/userFollowing.`);
-                }
-                promises.push(new Promise(resolve => {
-                    // eslint-disable-next-line promise/catch-or-return,promise/no-nesting
-                    db.collection(`posts/${email}/userPosts`).get().then(querySnapshot => {
-                        // eslint-disable-next-line promise/always-return
-                        if (querySnapshot.empty) {
-                            console.log(`No matching documents in posts/${email}/userPosts`);
-                            resolve();
-                        }
-                        // TODO change the structure of the return object
-                        //  Object {
-                        //   author: email,
-                        //   Object {
-                        //      {doc.id},
-                        //      doc.data()
-                        //      }
-                        //  }
-                        resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: email})));
-                    }); // then
-                }));
-                querySnapshot.forEach(doc => {
-                    // Obtain all posts of each user I am following
-                    promises.push(new Promise(resolve => {
-                        // eslint-disable-next-line promise/catch-or-return,promise/no-nesting
-                        db.collection(`posts/${doc.id}/userPosts`).get().then(querySnapshot => {
-                            // eslint-disable-next-line promise/always-return
-                            if (querySnapshot.empty) {
-                                console.log(`No matching documents in posts/${doc.id}/userPosts`);
-                                resolve();
-                            }
-                            resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: email})));
-                        });
-                    }));
-                }); // forEach
-                resolve(promises);
-            });
+           db.collection(`following/${email}/userFollowing`).get().then(querySnapshot => {
+               // eslint-disable-next-line promise/always-return
+               if (querySnapshot.empty) {
+                   let msg = `No matching documents in following/${email}/userFollowing.`;
+                   console.log(msg);
+                   reject(msg);
+               }
+               resolve(querySnapshot.docs.forEach(docs => userFollowing.push(docs.id)));
+           })
         });
     }
 
+    /**
+     * Initialize promises array with the promises of gets posts of every user in userFollowing array
+     * @returns {Promise<void>}
+     */
+    async function getPromises() {
+        await getFollowing();
+        userFollowing.forEach(emailUserFollowing => {
+            promises.push(new Promise(resolve => {
+                // eslint-disable-next-line promise/catch-or-return
+                db.collection(`posts/${emailUserFollowing}/userPosts`).get().then(querySnapshot => {
+                    // eslint-disable-next-line promise/always-return
+                    if (querySnapshot.empty) {
+                        console.log(`No matching documents in posts/${emailUserFollowing}/userPosts`);
+                        resolve();
+                    }
+                    resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: emailUserFollowing})));
+                })
+            }));
+        });
+    }
+
+    /**
+     * Get the posts of every user within users that the authorized user is following
+     * @returns {Promise<{feed: *}>}
+     */
     async function getResult() {
-        await buildPromises();
-        console.log(`Promises.length: ${promises.length}`);
+        await getPromises();
         // eslint-disable-next-line promise/always-return,promise/catch-or-return
         await Promise.all(promises).then(values => {
             let arrayFeed = [];

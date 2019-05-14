@@ -88,7 +88,7 @@ public class FirebaseFunctionsDataSource {
                 // has failed then getResult() will throw an Exception which will be
                 // propagated down.
                 if (response.getException() != null) {
-                    Log.d(TAG, "throwing exception");
+                    Log.w(TAG, "throwing exception", response.getException().fillInStackTrace());
                     throw new Exception(response.getException());
                 }
                 try {
