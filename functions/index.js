@@ -162,17 +162,19 @@ exports.loadFeed = functions.https.onCall((data, context) => {
      * @returns {Promise<any>}
      */
     function getFollowing() {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
+            let collectionPath = `following/${email}/userFollowing`;
+            let collectionRef = db.collection(collectionPath);
             // eslint-disable-next-line promise/catch-or-return
-           db.collection(`following/${email}/userFollowing`).get().then(querySnapshot => {
+            collectionRef.get().then(querySnapshot => {
                // eslint-disable-next-line promise/always-return
                if (querySnapshot.empty) {
-                   let msg = `No matching documents in following/${email}/userFollowing.`;
+                   let msg = `No matching documents in ${collectionPath}.`;
                    console.log(msg);
-                   reject(msg);
+                   resolve();
                }
                resolve(querySnapshot.docs.forEach(docs => userFollowing.push(docs.id)));
-           })
+            })
         });
     }
 
@@ -184,14 +186,23 @@ exports.loadFeed = functions.https.onCall((data, context) => {
         await getFollowing();
         userFollowing.forEach(emailUserFollowing => {
             promises.push(new Promise(resolve => {
+                let collectionPath =  `posts/${emailUserFollowing}/userPosts`;
+                let collectionRef = db.collection(collectionPath);
                 // eslint-disable-next-line promise/catch-or-return
-                db.collection(`posts/${emailUserFollowing}/userPosts`).get().then(querySnapshot => {
+                collectionRef.get().then(querySnapshot => {
                     // eslint-disable-next-line promise/always-return
                     if (querySnapshot.empty) {
-                        console.log(`No matching documents in posts/${emailUserFollowing}/userPosts`);
+                        console.log(`No matching documents in ${collectionPath}.`);
                         resolve();
+                    } else {
+                        let documentPath = `users/${emailUserFollowing}`;
+                        let documentRef = db.doc(documentPath);
+                        // eslint-disable-next-line promise/catch-or-return,promise/always-return,promise/no-nesting
+                        documentRef.get().then(documentSnapshot => {
+                            resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: documentSnapshot.get('email'), profilePic: documentSnapshot.get('photoUrl')})));
+                        });
                     }
-                    resolve(querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id}, {author: emailUserFollowing})));
+
                 })
             }));
         });
