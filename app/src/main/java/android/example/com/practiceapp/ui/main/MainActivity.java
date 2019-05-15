@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.example.com.practiceapp.R;
-import android.example.com.practiceapp.data.models.User;
+import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.databinding.ActivityMainBinding;
 import android.example.com.practiceapp.databinding.NavHeaderBinding;
 import android.example.com.practiceapp.ui.post.PostActivity;
@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         bindView();
         setupNavigation();
-
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(false);
 
@@ -229,11 +228,11 @@ public class MainActivity extends AppCompatActivity {
             // TODO (4) Ask for, is getPhotoUrl() == null?
             //  in case that user register with email option
             //  assign a default avatar
-            User userSigned = new User(null,null,
+            UserEntry userSigned = new UserEntry(user.getEmail(),
+                    null,
                     user.getDisplayName(),
-                    user.getEmail(),
                     user.getPhotoUrl() == null ? null : user.getPhotoUrl().toString(),
-                    null,null,null);
+                    null,"unspecified",null);
             if (user.getMetadata()!= null && user.getMetadata().getCreationTimestamp() == user.getMetadata().getLastSignInTimestamp()) {
                 // The user is the first time that sign in
                 Log.d(TAG, "saveUser()");

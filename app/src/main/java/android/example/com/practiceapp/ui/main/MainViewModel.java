@@ -7,8 +7,8 @@ import androidx.paging.PagedList;
 import androidx.work.WorkInfo;
 import android.example.com.practiceapp.data.PracticeAppRepository;
 import android.example.com.practiceapp.data.database.PostEntry;
+import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.data.models.Post;
-import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,8 +21,8 @@ public class MainViewModel extends ViewModel {
     private static final String TAG = MainViewModel.class.getSimpleName();
     private static final String EDIT_PROFILE = "EDIT_PROFILE";
     private boolean mIsSigningIn;
-    private MutableLiveData<User> userSigned;
-    private MutableLiveData<User> userSelected;
+    private LiveData<UserEntry> userSigned;
+    private MutableLiveData<UserEntry> userSelected;
     private MutableLiveData<String> buttonText;
     private MutableLiveData<String> postCount;
     private MutableLiveData<String> followersCount;
@@ -30,7 +30,6 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<Post> postSelected;
     private PracticeAppRepository mRepo;
     private LiveData<WorkInfo> mStatus;
-
 
     public MainViewModel(PracticeAppRepository repo) {
         this.mRepo = repo;
@@ -52,24 +51,15 @@ public class MainViewModel extends ViewModel {
 
     /**
      *
-     * @param user
-     */
-    private void setUserSigned(User user) {
-        Log.d(TAG, "setUserSigned to '" + user.getEmail() + "'.");
-        userSigned.setValue(user);
-    }
-
-    /**
-     *
       * @return
      */
-    public MutableLiveData<User> getUserSigned() { return userSigned; }
+    public LiveData<UserEntry> getUserSigned() { return userSigned; }
 
     /**
      *
      * @param user
      */
-    public void select(User user) {
+    public void select(UserEntry user) {
         userSelected.setValue(user);
         if (user != null){
             loadCounters();
@@ -81,7 +71,7 @@ public class MainViewModel extends ViewModel {
      *
      * @return
      */
-    public MutableLiveData<User> getUserSelected() { return userSelected; }
+    public MutableLiveData<UserEntry> getUserSelected() { return userSelected; }
 
     /**
      *
@@ -102,7 +92,7 @@ public class MainViewModel extends ViewModel {
         }
         String email = userSigned.getValue().getEmail();
         String emailSelected = userSelected.getValue().getEmail();
-        mRepo.loadFollows(email, emailSelected).observeForever(text -> {
+        mRepo.getFollows(email, emailSelected).observeForever(text -> {
             if(!TextUtils.isEmpty(text)) {
                 buttonText.postValue(text);
             }
@@ -123,7 +113,7 @@ public class MainViewModel extends ViewModel {
      */
     private void loadCounters() {
         String email = userSelected.getValue().getEmail();
-        mRepo.loadCounters(email).observeForever(counterMap -> {
+        mRepo.getCounters(email).observeForever(counterMap -> {
             if (!counterMap.isEmpty()) {
                 postCount.postValue(counterMap.get("posts"));
                 followersCount.postValue(counterMap.get("followers"));
@@ -194,7 +184,7 @@ public class MainViewModel extends ViewModel {
      * Create the user on FirebaseFirestore
      * @param user The user that will be saved
      */
-    public void createUser(User user) {
+    public void createUser(UserEntry user) {
         Log.d(TAG, "createUser()");
         userSigned = mRepo.create(user);
         select(userSigned.getValue());

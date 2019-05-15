@@ -1,5 +1,7 @@
 package android.example.com.practiceapp.data.models;
 
+import android.example.com.practiceapp.data.database.UserEntry;
+
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import java.util.HashMap;
@@ -9,23 +11,23 @@ import java.util.Map;
 public class Post {
     private static final String FIELD_USER = "user";
     private static final String FIELD_PHOTOS = "photos";
-    private User user;
+    private UserEntry user;
     private Photo photo;
 
     public Post() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(User user, Photo photo) {
+    public Post(UserEntry user, Photo photo) {
         this.user = user;
         this.photo = photo;
     }
 
-    public User getUser() {
+    public UserEntry getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserEntry user) {
         this.user = user;
     }
 

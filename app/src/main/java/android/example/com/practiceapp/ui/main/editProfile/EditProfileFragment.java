@@ -22,9 +22,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 
 public class EditProfileFragment extends Fragment {
-    private FragmentEditProfileBinding binding;
     private MainViewModel model;
-
 
     public EditProfileFragment() { }
 
@@ -37,7 +35,7 @@ public class EditProfileFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit_profile, container, false);
+        FragmentEditProfileBinding binding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit_profile, container, false);
         View view = binding.getRoot();
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);

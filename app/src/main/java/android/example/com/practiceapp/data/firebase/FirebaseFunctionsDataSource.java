@@ -14,7 +14,6 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.functions.FirebaseFunctionsException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +28,6 @@ public class FirebaseFunctionsDataSource {
     private final Context mContext;
     private final FirebaseFunctions mFunctions;
     private final AppExecutors mExecutors;
-
 
     private final MutableLiveData<PostEntry[]> mDownloadedPostsFeed;
 
@@ -77,53 +75,40 @@ public class FirebaseFunctionsDataSource {
     }
 
     // TODO (3) Refator to fetchFeed() and move a Worker Class
-    void loadFeed() {
-        Log.d(TAG, "Starting to loadFeed()");
+    //  return a Tasktype to listen in Worker Class
+    Task<Object> fetchFeed() {
+        Log.d(TAG, "Starting to fetchFeed()");
         // Create the arguments to the callable function.
         Map<String, Object> data = new HashMap<>();
-        mExecutors.networkIO().execute(() -> {
-             Task<Object> taskResult = mFunctions.getHttpsCallable(FUNCTION_NAME).call(data)
-            .continueWith(response -> {
-                // This continuation runs on either success or failure, but if the task
-                // has failed then getResult() will throw an Exception which will be
-                // propagated down.
-                if (response.getException() != null) {
-                    Log.w(TAG, "throwing exception", response.getException().fillInStackTrace());
-                    throw new Exception(response.getException());
+         Task<Object> taskResult = mFunctions.getHttpsCallable(FUNCTION_NAME).call(data)
+        .continueWith(response -> {
+            // This continuation runs on either success or failure, but if the task
+            // has failed then getResult() will throw an Exception which will be
+            // propagated down.
+            if (response.getException() != null) {
+                Log.w(TAG, "throwing exception", response.getException().fillInStackTrace());
+                throw new Exception(response.getException());
+            }
+            try {
+                Object result = response.getResult().getData();
+                // Parse the JSON into a list of Posts
+                PostsResponse postsResponse = new PostsJsonParser().parse(result);
+                Log.d(TAG, "JSON Parsing finished");
+                // As long as there are Posts, update the LiveData storing the most recent
+                // posts. This will trigger observers of that LiveData, such as the
+                // PracticeAppRepository
+                if (postsResponse != null && postsResponse.getPostsFeed().length != 0) {
+                    Log.d(TAG, "JSON not null and has " + postsResponse.getPostsFeed().length + " values.");
+                    // Will eventually do something with the downloaded data
+                    mDownloadedPostsFeed.postValue(postsResponse.getPostsFeed());
                 }
-                try {
-                    Object result = response.getResult().getData();
-                    // Parse the JSON into a list of Posts
-                    PostsResponse postsResponse = new PostsJsonParser().parse(result);
-                    Log.d(TAG, "JSON Parsing finished");
-                    // As long as there are Posts, update the LiveData storing the most recent
-                    // posts. This will trigger observers of that LiveData, such as the
-                    // PracticeAppRepository
-                    if (postsResponse != null && postsResponse.getPostsFeed().length != 0) {
-                        Log.d(TAG, "JSON not null and has " + postsResponse.getPostsFeed().length + " values.");
-                        // Will eventually do something with the downloaded data
-                        mDownloadedPostsFeed.postValue(postsResponse.getPostsFeed());
-                    }
-                } catch (Exception e) {
-                    Log.wtf(TAG, "loadFeed: ", e.fillInStackTrace());
-                }
+            } catch (Exception e) {
+                Log.wtf(TAG, "fetchFeed: ", e.fillInStackTrace());
+            }
 
-                return response.getResult().getData();
-            });
-
-            taskResult.addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                       Exception e = task.getException();
-                       if (e instanceof FirebaseFunctionsException) {
-                           FirebaseFunctionsException ffe = (FirebaseFunctionsException) e;
-                           FirebaseFunctionsException.Code code = ffe.getCode();
-                           Object details = ffe.getDetails();
-                       }
-                    } else {
-                        Log.d(TAG, "loadFeed completed successfully");
-                    }
-                });
+            return response.getResult().getData();
         });
+         return taskResult;
     }
 
     public MutableLiveData<PostEntry[]> getCurrentPosts() {

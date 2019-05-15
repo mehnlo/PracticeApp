@@ -14,15 +14,14 @@ import java.util.Date;
 final class PostsJsonParser {
 
     private static final String FEED = "feed";
-    private static final String COMMENTS = "comments";
+    private static final String ID = "id";
+    private static final String AUTHOR = "author";
+    private static final String PROFILE_PIC = "profilePic";
+    private static final String TITLE = "title";
+    private static final String PHOTO_URL = "photoUrl";
     private static final String DATE = "date";
     private static final String SECONDS = "_seconds";
     private static final String NANOSECONDS = "_nanoseconds";
-    private static final String GEO = "geo";
-    private static final String PHOTO_URL = "photoUrl";
-    private static final String TITLE = "title";
-    private static final String AUTHOR = "author";
-    private static final String ID = "id";
 
     private static PostEntry[] fromJson(final JSONArray jsonPostsArray) throws JSONException {
 
@@ -42,17 +41,18 @@ final class PostsJsonParser {
 
     private static PostEntry fromJson(final JSONObject jsonPost) throws JSONException {
         String id = jsonPost.getString(ID);
+        String author = jsonPost.getString(AUTHOR);
+        String profilePic = jsonPost.getString(PROFILE_PIC);
+        String title = jsonPost.getString(TITLE);
+        String photoUrl = jsonPost.getString(PHOTO_URL);
         JSONObject jsonDate = jsonPost.getJSONObject(DATE);
         Long seconds = jsonDate.getLong(SECONDS);
         int nanoseconds = jsonDate.getInt(NANOSECONDS);
         Timestamp timestamp = new Timestamp(seconds, nanoseconds);
         Date date = timestamp.toDate();
-        String title = jsonPost.getString(TITLE);
-        String photoUrl = jsonPost.getString(PHOTO_URL);
-        String author = jsonPost.getString(AUTHOR);
 
         // Create the post entry object
-        return new PostEntry(id, author, title, photoUrl, date);
+        return new PostEntry(id, author, profilePic, title, photoUrl, date);
     }
 
     /**

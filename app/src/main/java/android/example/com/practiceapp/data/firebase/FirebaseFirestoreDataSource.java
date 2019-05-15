@@ -1,12 +1,10 @@
 package android.example.com.practiceapp.data.firebase;
 
 import androidx.lifecycle.MutableLiveData;
-import android.example.com.practiceapp.AppExecutors;
+import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.data.models.Photo;
-import android.example.com.practiceapp.data.models.User;
 import android.net.Uri;
 import android.util.Log;
-
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldPath;
@@ -18,16 +16,13 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import java.util.HashMap;
 import java.util.Map;
-
-
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
-public class FirebaseDataSource {
-    private static final String TAG = FirebaseDataSource.class.getSimpleName();
+public class FirebaseFirestoreDataSource {
+    private static final String TAG = FirebaseFirestoreDataSource.class.getSimpleName();
     private static final String UNFOLLOW = "UNFOLLOW";
     private static final String FOLLOW = "FOLLOW";
     private static final String POSTS = "posts";
@@ -37,21 +32,19 @@ public class FirebaseDataSource {
     private static final String USER_FOLLOWERS = "userFollowers";
     // For singleton instantiation
     private static final Object LOCK = new Object();
-    private static FirebaseDataSource sInstance;
+    private static FirebaseFirestoreDataSource sInstance;
 
     private final FirebaseFirestore firestore;
     private final FirebaseStorage storage;
-    private final AppExecutors executors;
     private final CollectionReference usersRef;
     private final CollectionReference countersRef;
     private final CollectionReference followersRef;
     private final CollectionReference followingsRef;
     private final CollectionReference postsRef;
 
-    private FirebaseDataSource(FirebaseFirestore firestore, FirebaseStorage storage, AppExecutors executors) {
+    private FirebaseFirestoreDataSource(FirebaseFirestore firestore, FirebaseStorage storage) {
         this.firestore = firestore;
         this.storage = storage;
-        this.executors = executors;
         usersRef = firestore.collection("users");
         countersRef = firestore.collection("counters");
         followersRef = firestore.collection("followers");
@@ -61,11 +54,11 @@ public class FirebaseDataSource {
     /**
      * Get the singleton for this class
      */
-    public static FirebaseDataSource getInstance(FirebaseFirestore firestore, FirebaseStorage storage, AppExecutors executors) {
+    public static FirebaseFirestoreDataSource getInstance(FirebaseFirestore firestore, FirebaseStorage storage) {
         Log.d(TAG, "Getting the firebase data source");
         if (sInstance == null) {
             synchronized (LOCK) {
-                sInstance = new FirebaseDataSource(firestore, storage, executors);
+                sInstance = new FirebaseFirestoreDataSource(firestore, storage);
                 Log.d(TAG, "Made a new firebase data source");
             }
         }
@@ -76,17 +69,17 @@ public class FirebaseDataSource {
      * Get the user saved from FirebaseFirestore
      * @param email The user that will be loaded
      */
-    public MutableLiveData<User> get(String email) {
+    public MutableLiveData<UserEntry> get(String email) {
         final String documentName = email;
         DocumentReference documentReference = usersRef.document(email);
         Log.i(TAG, "Getting '" + documentName + "' in '" + usersRef.getId() + "'.");
-        final MutableLiveData<User> data = new MutableLiveData<>();
+        final MutableLiveData<UserEntry> data = new MutableLiveData<>();
         documentReference.addSnapshotListener((documentSnapshot, e) -> {
             if (e != null) {
                 Log.w(TAG, "get failed with", e.fillInStackTrace());
                 return;
             } if (documentSnapshot != null && documentSnapshot.exists()) {
-                data.setValue(documentSnapshot.toObject(User.class));
+                data.setValue(documentSnapshot.toObject(UserEntry.class));
             } else {
                 Log.d(TAG, "Document '" + documentName + "' does not exist in '" + usersRef.getId() + "'.");
             }
@@ -98,13 +91,13 @@ public class FirebaseDataSource {
      * Create the user on FirebaseFirestore
      * @param user The user that will be saved
      */
-    public MutableLiveData<User> create(User user) {
+    public MutableLiveData<UserEntry> create(UserEntry user) {
         final String documentName = user.getEmail();
         final Map<String, Object> userMap = user.toMap();
         DocumentReference documentReference = usersRef.document(documentName);
 
         Log.i(TAG, "Creating '" + documentName + "' in '" + usersRef.getId() + "'.");
-        final MutableLiveData<User> data = new MutableLiveData<>();
+        final MutableLiveData<UserEntry> data = new MutableLiveData<>();
         // First read for existing user, if not create it
         documentReference.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
@@ -112,7 +105,7 @@ public class FirebaseDataSource {
                 return;
             } if (snapshots.exists()) {
                 Log.d(TAG, "Existing user");
-                data.setValue(snapshots.toObject(User.class));
+                data.setValue(snapshots.toObject(UserEntry.class));
             } else {
                 Log.d(TAG, "New user");
                 Map<String, Object> emptyData = new HashMap<>();
@@ -141,7 +134,7 @@ public class FirebaseDataSource {
         return data;
     }
 
-    public void update(User user) {
+    public void update(UserEntry user) {
         final String documentName = user.getEmail();
         final Map<String, Object> userMap = user.toMap();
         DocumentReference documentReference = usersRef.document(documentName);
@@ -181,7 +174,7 @@ public class FirebaseDataSource {
                 Uri downloadUri = task.getResult();
                 Log.d(TAG, "onComplete: " + downloadUri.toString());
                 documentReference
-                        .update(User.FIELD_PHOTO_URL, downloadUri.toString())
+                        .update(UserEntry.FIELD_PHOTO_URL, downloadUri.toString())
                         .addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
                                 Log.d(TAG, "ProfileFragment pic updated succesfully");

@@ -12,7 +12,7 @@ public class Comment {
     private String body;
     private String timestamp;
 
-    public Comment() { // Default constructor required for calls to DataSnapshot.getValue(User.class)
+    public Comment() { // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
     }
 
     public Comment(String userId, String body, String timestamp) {

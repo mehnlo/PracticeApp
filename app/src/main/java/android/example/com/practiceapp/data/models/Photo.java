@@ -35,7 +35,7 @@ public class Photo {
     private Date date;
     private Comment[] comments;
 
-    public Photo() { // Default constructor required for calls to DataSnapshot.getValue(User.class)
+    public Photo() { // Default constructor required for calls to DataSnapshot.getValue(Photo.class)
     }
 
     public Photo(String title, String photoUrl, String geo, Date date, Comment[] comments) {

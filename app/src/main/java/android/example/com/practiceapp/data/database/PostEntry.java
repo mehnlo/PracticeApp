@@ -19,15 +19,17 @@ public class PostEntry {
     @NonNull
     private String id;
     private String author;
+    private String profilePic;
     private String title;
     private String photoUrl;
     // comments
     // geo
     private Date date;
 
-    public PostEntry(String id, String author, String title, String photoUrl, Date date) {
+    public PostEntry(@NonNull String id, String author, String profilePic, String title, String photoUrl, Date date) {
         this.id = id;
         this.author = author;
+        this.profilePic = profilePic;
         this.title = title;
         this.photoUrl = photoUrl;
         this.date = date;
@@ -36,6 +38,8 @@ public class PostEntry {
     public String getId() { return id; }
 
     public String getAuthor() { return author; }
+
+    public String getProfilePic() { return profilePic; }
 
     public String getTitle() { return title; }
 

@@ -4,9 +4,9 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.paging.PagedList;
 import android.example.com.practiceapp.R;
+import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.Post;
-import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.databinding.FragmentContentListUserBinding;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
@@ -57,7 +57,7 @@ public class ListPostFragment extends Fragment {
         });
     }
 
-    private void setUpAdapter(User user) {
+    private void setUpAdapter(UserEntry user) {
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)
                 .setPrefetchDistance(PREFETCH_DISTANCE)

@@ -6,13 +6,11 @@ import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
 import androidx.work.WorkInfo;
 import android.example.com.practiceapp.AppExecutors;
-import android.example.com.practiceapp.data.database.PostDao;
 import android.example.com.practiceapp.data.database.PostEntry;
-import android.example.com.practiceapp.data.database.UserDao;
-import android.example.com.practiceapp.data.firebase.FirebaseDataSource;
-import android.example.com.practiceapp.data.firebase.FirebaseFunctionsDataSource;
+import android.example.com.practiceapp.data.database.PracticeAppDatabase;
+import android.example.com.practiceapp.data.database.UserEntry;
+import android.example.com.practiceapp.data.firebase.NetworkDataSource;
 import android.example.com.practiceapp.data.models.Photo;
-import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.utilities.PracticeAppDateUtils;
 import android.net.Uri;
 import android.util.Log;
@@ -21,46 +19,45 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * Handles data operations in PracticeApp. Acts as a mediator between {@link FirebaseDataSource}
- * and {@link UserDao}
+ * Handles data operations in PracticeApp. Acts as a mediator between {@link NetworkDataSource}
+ * and {@link PracticeAppDatabase}
  */
 public class PracticeAppRepository {
     private static final String TAG = PracticeAppRepository.class.getSimpleName();
     // For singleton instantiation
     private static final Object LOCK = new Object();
-
     private static PracticeAppRepository sInstance;
-    private final PostDao mPostDao;
-    private final LiveData<PagedList<PostEntry>> postList;
-    private final FirebaseDataSource mFirebaseDataSource;
-    private final FirebaseFunctionsDataSource mFunctionsDataSource;
+
+    private final PracticeAppDatabase db;
+    private final NetworkDataSource network;
     private final AppExecutors mExecutors;
+
+    private final LiveData<PagedList<PostEntry>> postList;
     private boolean mInitialized = false;
     private LiveData<WorkInfo> mStatus;
 
-    private PracticeAppRepository(PostDao postDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
-        mPostDao = postDao;
-        mFirebaseDataSource = firebaseDataSource;
-        mFunctionsDataSource = functionsDataSource;
+    private PracticeAppRepository(PracticeAppDatabase database, NetworkDataSource networkDataSource, AppExecutors executors) {
+        db = database;
+        network = networkDataSource;
         mExecutors = executors;
         mStatus = new MutableLiveData<>();
-        LiveData<PostEntry[]> networkData = mFunctionsDataSource.getCurrentPosts();
+        LiveData<PostEntry[]> networkData = network.functions.getCurrentPosts();
         networkData.observeForever(newFeedFromNetwork -> mExecutors.diskIO().execute(() -> {
             // Delete old historical data
             deleteOldData();
             Log.d(TAG, "Old feed deleted");
             // Insert our new feed data into PracticeApp's database
-            mPostDao.bulkInsert(newFeedFromNetwork);
+            db.postDao().bulkInsert(newFeedFromNetwork);
             Log.d(TAG, "New values inserted");
         }));
-        postList = new LivePagedListBuilder<>(mPostDao.getCurrentFeed(), 15).build();
-
+        postList = new LivePagedListBuilder<>(db.postDao().getCurrentFeed(), 10).build();
     }
-    public synchronized static PracticeAppRepository getInstance(PostDao postDao, FirebaseDataSource firebaseDataSource, FirebaseFunctionsDataSource functionsDataSource, AppExecutors executors) {
+
+    public synchronized static PracticeAppRepository getInstance(PracticeAppDatabase database, NetworkDataSource network, AppExecutors executors) {
         Log.d(TAG, "Getting the repository");
         if (sInstance == null) {
             synchronized (LOCK) {
-                sInstance = new PracticeAppRepository(postDao, firebaseDataSource, functionsDataSource, executors);
+                sInstance = new PracticeAppRepository(database, network, executors);
                 Log.d(TAG, "Made new repository");
             }
         }
@@ -84,7 +81,7 @@ public class PracticeAppRepository {
 
         // This method call triggers PracticeApp to create its task to synchronize post data
         // periodically
-        mStatus = mFunctionsDataSource.scheduleRecurringFethcFeedSync();
+        mStatus = network.functions.scheduleRecurringFethcFeedSync();
 
         // TODO (5) isFetchNeeded
     }
@@ -93,7 +90,7 @@ public class PracticeAppRepository {
      */
     private void deleteOldData() {
         Date today = PracticeAppDateUtils.getNormalizedUtcDateForToday();
-        mPostDao.deleteOldFeed(today);
+        db.postDao().deleteOldFeed(today);
     }
 
     /**
@@ -111,29 +108,44 @@ public class PracticeAppRepository {
      */
 
     /**
-     *
+     * Get the user from {@link PracticeAppDatabase}, if the user is null, get the user from {@link NetworkDataSource} and insert it in {@link PracticeAppDatabase}
      * @param email
-     * @return
+     * @return a @{@link LiveData} of {@link UserEntry}
      */
-    public MutableLiveData<User> get(String email) {
-        return mFirebaseDataSource.get(email);
+    public LiveData<UserEntry> get(String email) {
+        LiveData<UserEntry> result;
+        result = db.userDao().getUserByEmail(email);
+        result.observeForever(userEntry -> {
+            if (userEntry == null) network.firestore.get(email).observeForever(userFromNetwork -> {
+                    if (userFromNetwork != null) mExecutors.diskIO().execute(() -> db.userDao().bulkInsert(userFromNetwork));
+                });
+        });
+        return result;
     }
 
     /**
      *
      * @param user
-     * @return
+     * @return a @{@link LiveData} of {@link UserEntry}
      */
-    public MutableLiveData<User> create(User user) {
-        return mFirebaseDataSource.create(user);
+    public LiveData<UserEntry> create(UserEntry user) {
+        network.firestore.create(user).observeForever(userEntry -> mExecutors.diskIO().execute(() ->{
+            if (userEntry != null) {
+                db.userDao().bulkInsert(userEntry);
+            }
+        }));
+        return db.userDao().getUserByEmail(user.getEmail());
     }
 
     /**
-     *
+     * Update the user in {@link PracticeAppDatabase} and in backend server
      * @param user
      */
-    public void update(User user) {
-        mFirebaseDataSource.update(user);
+    public void update(UserEntry user) {
+        mExecutors.diskIO().execute(() -> {
+            db.userDao().bulkInsert(user);
+            network.firestore.update(user);
+        });
     }
 
     /**
@@ -142,7 +154,7 @@ public class PracticeAppRepository {
      * @param mPhotoUri
      */
     public void uploadProfilePic(String email, Uri mPhotoUri) {
-        mFirebaseDataSource.uploadProfilePic(email, mPhotoUri);
+        network.firestore.uploadProfilePic(email, mPhotoUri);
     }
 
     /**
@@ -151,8 +163,8 @@ public class PracticeAppRepository {
      * @param emailSelected
      * @return
      */
-    public MutableLiveData<String> loadFollows(String email, String emailSelected) {
-        return mFirebaseDataSource.loadFollows(email, emailSelected);
+    public MutableLiveData<String> getFollows(String email, String emailSelected) {
+        return network.firestore.loadFollows(email, emailSelected);
     }
 
     /**
@@ -160,8 +172,8 @@ public class PracticeAppRepository {
      * @param email
      * @return
      */
-    public MutableLiveData<Map<String, String>> loadCounters(String email) {
-        return mFirebaseDataSource.loadCounters(email);
+    public MutableLiveData<Map<String, String>> getCounters(String email) {
+        return network.firestore.loadCounters(email);
     }
 
     /**
@@ -170,7 +182,7 @@ public class PracticeAppRepository {
      * @param emailSelected
      */
     public void follow(String email, String emailSelected) {
-        mFirebaseDataSource.follow(email, emailSelected);
+        network.firestore.follow(email, emailSelected);
     }
 
     /**
@@ -179,17 +191,17 @@ public class PracticeAppRepository {
      * @param emailSelected
      */
     public void unfollow(String email, String emailSelected) {
-        mFirebaseDataSource.unfollow(email, emailSelected);
+        network.firestore.unfollow(email, emailSelected);
     }
 
     public Query getBaseQuery(String email) {
-        return mFirebaseDataSource.getBaseQuery(email);
+        return network.firestore.getBaseQuery(email);
     }
 
     // TODO (7) Create delete method
 
     public MutableLiveData<Integer> uploadPhoto(String email, Photo photo) {
-        return mFirebaseDataSource.uploadPhoto(email, photo);
+        return network.firestore.uploadPhoto(email, photo);
     }
 
     /**

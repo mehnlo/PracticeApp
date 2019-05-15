@@ -1,17 +1,15 @@
 package android.example.com.practiceapp.ui.main.user.grid;
 
-
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.paging.PagedList;
-
+import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.databinding.FragmentContentGridUserBinding;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.example.com.practiceapp.R;
 import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.data.models.Post;
-import android.example.com.practiceapp.data.models.User;
 import android.example.com.practiceapp.ui.main.MainViewModel;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -22,7 +20,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.firebase.ui.firestore.SnapshotParser;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 
@@ -62,7 +59,7 @@ public class GridPostFragment extends Fragment {
         });
     }
 
-    private void setUpAdapter(User user) {
+    private void setUpAdapter(UserEntry user) {
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)
                 .setPrefetchDistance(PREFETCH_DISTANCE)

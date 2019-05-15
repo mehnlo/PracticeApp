@@ -3,7 +3,7 @@ package android.example.com.practiceapp.ui.main.search;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.example.com.practiceapp.R;
-import android.example.com.practiceapp.data.models.User;
+import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.ui.main.MainViewModelFactory;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.example.com.practiceapp.ui.main.MainViewModel;
@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,7 +31,6 @@ import com.algolia.instantsearch.core.model.AlgoliaResultsListener;
 import com.algolia.instantsearch.ui.helpers.InstantSearch;
 import com.algolia.instantsearch.ui.views.Hits;
 import com.algolia.instantsearch.ui.views.SearchBox;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
@@ -123,14 +121,13 @@ public class SearchFragment extends Fragment {
             hideKeyboard();
             JSONObject json = mHits.get(position);
             Log.d(TAG, "JSONObject: " + json.toString());
-            User user = new User(
-                    json.optString(User.FIELD_UID, null),
-                    json.optString(User.FIELD_USERNAME, null),
-                    json.optString(User.FIELD_DISPLAYNAME, null),
-                    json.optString(User.FIELD_EMAIL, null),
-                    json.optString(User.FIELD_PHOTO_URL, null),
-                    json.optString(User.FIELD_TLFNO, null),
-                    json.optString(User.FIELD_GENDER, null),
+            UserEntry user = new UserEntry(
+                    json.optString(UserEntry.FIELD_EMAIL, null),
+                    json.optString(UserEntry.FIELD_USERNAME, null),
+                    json.optString(UserEntry.FIELD_DISPLAY_NAME, null),
+                    json.optString(UserEntry.FIELD_PHOTO_URL, null),
+                    json.optString(UserEntry.FIELD_TLF_NO, null),
+                    json.optString(UserEntry.FIELD_GENDER, null),
                     null);
             model.select(user);
             Navigation.findNavController(v).navigate(R.id.action_search_to_profileSearched);
