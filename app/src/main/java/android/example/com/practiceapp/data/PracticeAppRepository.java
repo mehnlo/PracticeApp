@@ -81,7 +81,7 @@ public class PracticeAppRepository {
 
         // This method call triggers PracticeApp to create its task to synchronize post data
         // periodically
-        mStatus = network.functions.scheduleRecurringFethcFeedSync();
+        mStatus = network.functions.scheduleRecurringFetchFeedSync();
 
         // TODO (5) isFetchNeeded
     }

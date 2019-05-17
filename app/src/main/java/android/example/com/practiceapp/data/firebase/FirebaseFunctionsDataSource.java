@@ -55,7 +55,7 @@ public class FirebaseFunctionsDataSource {
     /**
      * Schedules a periodic work request which fetches the feed.
      */
-    public LiveData<WorkInfo> scheduleRecurringFethcFeedSync() {
+    public LiveData<WorkInfo> scheduleRecurringFetchFeedSync() {
         // Create the Job to periodically sync Sunshine
         Constraints constraints = new Constraints.Builder()
                 // The Woker needs Network connectivity
