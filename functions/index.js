@@ -17,43 +17,56 @@ const client = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_ADMIN_KEY);
 const index = client.initIndex(ALGOLIA_INDEX_NAME);
 // [END init_algolia]
 
+const PICTURE_FEMALE = functions.config().picture.female;
+const PICTURE_MALE = functions.config().picture.male;
+const PICTURE_UNSPECIFIED = functions.config().picture.unspecified;
+
 // [START update_index_function]
 // Triggered when a document is written to for the first time.
 exports.addFirestoreDataToAlgolia = functions.firestore
     .document('users/{userId}')
     .onCreate((snap, context) => {
-      // Get the user documents
-      const user = snap.data();
-      // Add an 'objectID' field which Algolia requires
-      user.objectID = context.params.userId;
-      return index
-          .saveObject(user)
-          // eslint-disable-next-line promise/always-return
-          .then(() => {
-            console.log(`User imported: ${user.objectID} into Algolia`);
-          }).catch(error => {
-            console.error('Error when importing user into Algolia', error);
-            process.exit(1);
-          });
+        // Get the user documents
+        const user = snap.data();
+        // Doesn't have photoUrl
+        if (user.photoUrl === undefined || user.photoUrl === null) return snap.ref.update({photoUrl: PICTURE_UNSPECIFIED});
+        // Add an 'objectID' field which Algolia requires
+        user.objectID = context.params.userId;
+        return index
+            .saveObject(user)
+            // eslint-disable-next-line promise/always-return
+            .then(() => {
+                console.log(`User imported: ${user.objectID} into Algolia`);
+            }).catch(error => {
+                console.error('Error when importing user into Algolia', error);
+                process.exit(1);
+            });
     });
 
 // Triggered when a document already exists and has any value changed.
 exports.updateFirestoreDataToAlgolia = functions.firestore
     .document('users/{userId}')
     .onUpdate((change, context) => {
-      // Get the user documents
-      const newUser = change.after.data();
-      // Add an 'objectId' field which Algolia requires
-      newUser.objectID = context.params.userId;
-      return index
-          .saveObject(newUser)
-          // eslint-disable-next-line promise/always-return
-          .then(() => {
-            console.log(`User updated: ${newUser.objectID} into Algolia`);
-          }).catch(error => {
-            console.error('Error when update user into Algolia', error);
-            process.exit(1);
-          });
+        // Get the user documents
+        const newUser = change.after.data();
+        const previousUser = change.before.data();
+        // Only if the update involve gender
+        if(previousUser.gender !== newUser.gender) {
+            if (newUser.gender === 'unspecified') return change.after.ref.update({photoUrl: PICTURE_UNSPECIFIED});
+            else if (newUser.gender === 'male') return change.after.ref.update({photoUrl: PICTURE_MALE});
+            else if (newUser.gender === 'female') return change.after.ref.update({photoUrl: PICTURE_FEMALE});
+        }
+        // Add an 'objectId' field which Algolia requires
+        newUser.objectID = context.params.userId;
+        return index
+            .saveObject(newUser)
+            // eslint-disable-next-line promise/always-return
+            .then(() => {
+                console.log(`User updated: ${newUser.objectID} into Algolia`);
+            }).catch(error => {
+                console.error('Error when update user into Algolia', error);
+                process.exit(1);
+            });
     });
 // Triggered when a document with data is deleted.
 exports.deleteFirestoreDataToAlgolia = functions.firestore
@@ -231,5 +244,4 @@ exports.loadFeed = functions.https.onCall((data, context) => {
     return getResult();
 
 });
-
 
