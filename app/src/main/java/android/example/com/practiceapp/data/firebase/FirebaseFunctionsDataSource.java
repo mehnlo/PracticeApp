@@ -74,8 +74,6 @@ public class FirebaseFunctionsDataSource {
         return status;
     }
 
-    // TODO (3) Refator to fetchFeed() and move a Worker Class
-    //  return a Tasktype to listen in Worker Class
     Task<Object> fetchFeed() {
         Log.d(TAG, "Starting to fetchFeed()");
         // Create the arguments to the callable function.
@@ -113,5 +111,10 @@ public class FirebaseFunctionsDataSource {
 
     public MutableLiveData<PostEntry[]> getCurrentPosts() {
         return mDownloadedPostsFeed;
+    }
+
+    public void cancelAllWork() {
+        Log.d(TAG, "cancelAllWork()");
+        WorkManager.getInstance().cancelAllWork();
     }
 }

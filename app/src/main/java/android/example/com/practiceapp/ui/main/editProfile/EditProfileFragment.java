@@ -1,5 +1,6 @@
 package android.example.com.practiceapp.ui.main.editProfile;
 
+import androidx.annotation.StringRes;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -20,43 +21,40 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 public class EditProfileFragment extends Fragment {
+    private FragmentEditProfileBinding binding;
     private MainViewModel model;
 
     public EditProfileFragment() { }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentEditProfileBinding binding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit_profile, container, false);
-        View view = binding.getRoot();
+    @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit_profile, container, false);
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
-        binding.setLifecycleOwner(this);
+        binding.setLifecycleOwner(getViewLifecycleOwner());
         binding.setViewmodel(model);
-        return view;
+        return binding.getRoot();
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+    @Override public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.menu_edit_profile, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    @Override public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         hideKeyboard();
         if (item.getItemId() == R.id.action_edit_profile) {
-            model.saveUser();
+            model.updateUser();
+            showToast(R.string.profile_updated);
         } else if (item.getItemId() == android.R.id.home) {
-            Navigation.findNavController(getView()).navigateUp();
+            Navigation.findNavController(binding.getRoot()).navigateUp();
         }
         return true;
     }
@@ -68,5 +66,7 @@ public class EditProfileFragment extends Fragment {
                 imm.hideSoftInputFromWindow(requireActivity().getCurrentFocus().getWindowToken(), 0);
         } catch (Exception e) { e.printStackTrace(); }
     }
+
+    private void showToast(@StringRes int messageRes) { Toast.makeText(requireContext(), messageRes, Toast.LENGTH_SHORT).show(); }
 
 }

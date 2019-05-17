@@ -18,7 +18,6 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
     ListPostViewHolder(ItemListPostBinding itemView) {
         super(itemView.getRoot());
         itemBinding = itemView;
-
     }
 
     void bind(@NonNull final Post item) {
@@ -43,8 +42,7 @@ class ListPostViewHolder extends RecyclerView.ViewHolder {
     private class MyMenuItemClickListener implements PopupMenu.OnMenuItemClickListener {
         private final String TAG = MyMenuItemClickListener.class.getSimpleName();
         MyMenuItemClickListener() {}
-        @Override
-        public boolean onMenuItemClick(MenuItem item) {
+        @Override public boolean onMenuItemClick(MenuItem item) {
             if (item.getItemId() == R.id.action_remove) {
                 Log.d(TAG, "onMenuItemClick: action_remove " + item.getItemId());
             }

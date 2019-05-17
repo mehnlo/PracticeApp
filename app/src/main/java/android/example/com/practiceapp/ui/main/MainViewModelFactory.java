@@ -12,9 +12,7 @@ public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
         this.mRepository = repository;
     }
 
-    @NonNull
-    @Override
-    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+    @NonNull @Override public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         return (T) new MainViewModel(mRepository);
     }
 }

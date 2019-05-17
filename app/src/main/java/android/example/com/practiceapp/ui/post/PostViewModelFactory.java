@@ -8,11 +8,9 @@ import androidx.annotation.NonNull;
 public class PostViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     private final PracticeAppRepository mRepository;
 
-    public PostViewModelFactory(PracticeAppRepository mRepository) { this.mRepository = mRepository; }
+    public PostViewModelFactory(PracticeAppRepository repository) { mRepository = repository; }
 
-    @NonNull
-    @Override
-    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+    @NonNull @Override public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         return (T) new PostViewModel(mRepository);
     }
 }

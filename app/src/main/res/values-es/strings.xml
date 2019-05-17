@@ -47,4 +47,13 @@
     <string name="edit_profile_fragment_title">Editar Perfil</string>
     <string name="action_profile_searched">Perfil buscado</string>
     <string name="action_detail_post">Detalle</string>
+    <string name="unknown_error">Ha ocurrido un error desconocido</string>
+    <string name="sign_in_cancelled">Sign in cancelado</string>
+    <string name="title_activity_sign_in">SignIn</string>
+    <string name="no_internet_connection">No hay conexión a internet</string>
+    <string name="profile_updated">Perfil actualizado</string>
+    <string name="error_searching">Error buscando&#160;</string>
+    <string name="reached_end_data">Llegó al final</string>
+    <string name="error_ocurred">Un error ha ocurrido</string>
+    <string name="permission_write_storage_not_granted">Permiso de escritura en almacenamiento denegado</string>
 </resources>

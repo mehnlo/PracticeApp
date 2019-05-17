@@ -14,15 +14,15 @@ public class PostViewModel extends ViewModel {
     private static  final String TAG = PostViewModel.class.getSimpleName();
     private MutableLiveData<Post> postSelected;
     private String email;
-    private PracticeAppRepository userRepo;
+    private PracticeAppRepository mRepo;
 
     /**
      *
-     * @param userRepo
+     * @param repository
      */
-    public PostViewModel(PracticeAppRepository userRepo) {
-        this.userRepo = userRepo;
-        this.postSelected = new MutableLiveData<>();
+    public PostViewModel(PracticeAppRepository repository) {
+        mRepo = repository;
+        postSelected = new MutableLiveData<>();
     }
 
     /**
@@ -65,6 +65,6 @@ public class PostViewModel extends ViewModel {
      * @return
      */
     public MutableLiveData<Integer> uploadPhoto() {
-        return userRepo.uploadPhoto(email, postSelected.getValue().getPhoto());
+        return mRepo.uploadPhoto(email, postSelected.getValue().getPhoto());
     }
 }

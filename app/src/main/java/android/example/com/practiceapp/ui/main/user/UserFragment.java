@@ -1,5 +1,6 @@
 package android.example.com.practiceapp.ui.main.user;
 
+import androidx.annotation.StringRes;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import android.example.com.practiceapp.R;
@@ -12,13 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
-import android.util.Log;
+import androidx.navigation.Navigation;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-public abstract class UserFragment extends Fragment {
+public class UserFragment extends Fragment {
     public static final String TAG = UserFragment.class.getSimpleName();
     private static final String UNFOLLOW = "UNFOLLOW";
     private static final String FOLLOW = "FOLLOW";
@@ -26,44 +27,32 @@ public abstract class UserFragment extends Fragment {
     private FragmentUserBinding binding;
     private MainViewModel model;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
+    public UserFragment() { }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user, container, false);
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
-        binding.headerUser.setViewmodel(model);
-        binding.headerUser.setLifecycleOwner(this);
+        binding.setLifecycleOwner(getViewLifecycleOwner());
+        binding.setViewmodel(model);
         return binding.getRoot();
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         subscribeToModel();
         setupTabLayout();
     }
 
-    @Override
-    public void onPause() {
+    @Override public void onPause() {
         stopListener();
         super.onPause();
     }
 
-    private void stopListener() {
-        // Stop listening to changes
-        Log.i(TAG, "stopListener()");
-        binding.tabLayout.clearOnTabSelectedListeners();
-    }
+    private void stopListener() { binding.tabLayout.clearOnTabSelectedListeners(); }
 
     private void subscribeToModel() {
-        model.getActionButton().observe(this, s -> {
+        model.getActionButton().observe(getViewLifecycleOwner(), s -> {
             if (s != null) {
                 View.OnClickListener action = null;
                 switch (s) {
@@ -75,12 +64,12 @@ public abstract class UserFragment extends Fragment {
                     case FOLLOW:
                         binding.headerUser.btProfile.setBackground(getResources().getDrawable(R.drawable.button));
                         binding.headerUser.btProfile.setText(getString(R.string.user_fragment_follow_profile));
-                        action = view -> followUser(model);
+                        action = view -> followUser();
                         break;
                     case UNFOLLOW:
                         binding.headerUser.btProfile.setBackground(getResources().getDrawable(R.drawable.btn_gradient));
                         binding.headerUser.btProfile.setText(getString(R.string.user_fragment_unfollow_profile));
-                        action = view -> unfollowUser(model);
+                        action = view -> unFollowUser();
                         break;
                 }
                 binding.headerUser.btProfile.setOnClickListener(action);
@@ -88,13 +77,18 @@ public abstract class UserFragment extends Fragment {
         });
     }
 
-    protected void editProfile(View view) { showToast("EditProfile"); }
-    private void followUser(MainViewModel model){
-        showToast("Follow");
+    private void editProfile(View view) {
+        showToast(R.string.edit_profile_fragment_title);
+        Navigation.findNavController(view).navigate(R.id.action_profile_to_editProfile);
+    }
+
+    private void followUser(){
+        showToast(R.string.user_fragment_follow_profile);
         model.followUser();
     }
-    private void unfollowUser(MainViewModel model){
-        showToast("Unfollow");
+
+    private void unFollowUser(){
+        showToast(R.string.user_fragment_unfollow_profile);
         model.unfollowUser();
     }
 
@@ -104,8 +98,6 @@ public abstract class UserFragment extends Fragment {
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(binding.container));
     }
 
-    private void showToast(String message){
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-    }
+    private void showToast(@StringRes int message){ Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show(); }
 
 }

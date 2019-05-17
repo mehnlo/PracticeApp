@@ -48,8 +48,7 @@ public class SearchFragment extends Fragment {
     private AlgoliaResultsListener mResultListener;
     private AlgoliaErrorListener mErrorListener;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         EventBus.getDefault().register(this);
@@ -57,39 +56,33 @@ public class SearchFragment extends Fragment {
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_search, container, false);
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        bindView();
+    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        bindView(view);
         subscribeToSearcher();
     }
 
-    @Override
-    public void onStart() {
+    @Override public void onStart() {
         super.onStart();
         mErrorListener = (query, error) -> {
             Log.w(TAG, "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage());
-            Toast.makeText(requireContext(), "Error searching" + query.getQuery() + ":" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), R.string.error_searching + query.getQuery() + ":" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         };
         mSearcher.registerErrorListener(mErrorListener);
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onPause() {
         mSearcher.unregisterResultListener(mResultListener);
         mSearcher.unregisterErrorListener(mErrorListener);
         EventBus.getDefault().unregister(this);
-        super.onDestroy();
+        super.onPause();
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+    @Override public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
         final MenuItem itemSearch = menu.findItem(R.id.action_search);
         new InstantSearch(requireActivity(), menu, itemSearch.getItemId(), mSearcher); // link the Searcher to the UI
@@ -101,8 +94,8 @@ public class SearchFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    private void bindView(){
-        mHits = getView().findViewById(R.id.hits);
+    private void bindView(View view){
+        mHits = view.findViewById(R.id.hits);
     }
 
     private void subscribeToSearcher() {
@@ -143,11 +136,10 @@ public class SearchFragment extends Fragment {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    @Subscribe
-    public void onCancelEvent(CancelEvent event){}
-    @Subscribe
-    public void onResultEvent(ResultEvent event){}
-    @Subscribe
-    public void onSearchEvent(SearchEvent event){}
+    @Subscribe public void onCancelEvent(CancelEvent event){}
+
+    @Subscribe public void onResultEvent(ResultEvent event){}
+
+    @Subscribe public void onSearchEvent(SearchEvent event){}
 
 }

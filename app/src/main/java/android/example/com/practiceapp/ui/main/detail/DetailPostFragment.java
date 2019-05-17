@@ -19,15 +19,12 @@ public class DetailPostFragment extends Fragment {
 
     public DetailPostFragment() { }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         FragmentDetailPostBinding binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_post, container, false);
-        View view = binding.getRoot();
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         MainViewModel model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
         binding.setLifecycleOwner(this);
         binding.setViewmodel(model);
-        return view;
+        return binding.getRoot();
     }
 }

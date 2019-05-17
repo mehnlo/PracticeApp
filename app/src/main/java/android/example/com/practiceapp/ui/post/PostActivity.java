@@ -4,23 +4,16 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.example.com.practiceapp.R;
-import android.example.com.practiceapp.data.models.Photo;
 import android.example.com.practiceapp.databinding.ActivityPostBinding;
 import android.example.com.practiceapp.ui.main.MainActivity;
 import android.example.com.practiceapp.utilities.InjectorUtils;
-import android.net.Uri;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
-
-import com.bumptech.glide.Glide;
 
 public class PostActivity extends AppCompatActivity {
     private static final String TAG = PostActivity.class.getSimpleName();
@@ -29,8 +22,7 @@ public class PostActivity extends AppCompatActivity {
     private ActivityPostBinding binding;
     private PostViewModel viewModel;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         bindView();
         captureIntent();
@@ -58,8 +50,7 @@ public class PostActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(getString(R.string.new_post));
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home){
             onBackPressed();
         } else if (item.getItemId() == R.id.action_send) {
@@ -75,11 +66,11 @@ public class PostActivity extends AppCompatActivity {
         uploadPhoto();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_post, menu);
         return true;
     }
+
     private void uploadPhoto(){
         viewModel.uploadPhoto().observe(this, integer -> {
             if (integer != null) {

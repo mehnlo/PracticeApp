@@ -2,15 +2,16 @@ package android.example.com.practiceapp.ui.main;
 
 import android.Manifest;
 
+import androidx.annotation.StringRes;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.example.com.practiceapp.R;
-import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.databinding.ActivityMainBinding;
 import android.example.com.practiceapp.databinding.NavHeaderBinding;
+import android.example.com.practiceapp.ui.auth.AuthActivity;
 import android.example.com.practiceapp.ui.post.PostActivity;
 import android.example.com.practiceapp.utilities.InjectorUtils;
 import android.net.Uri;
@@ -31,9 +32,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
-import com.firebase.ui.auth.AuthMethodPickerLayout;
 import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
@@ -45,15 +44,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
-// TODO (2) Separate Signed Logic from Main Activity
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int RC_SIGN_IN = 9001;
     private static final int MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 88;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
     public static final int PICK_PHOTO_CODE = 1046;
@@ -68,22 +64,31 @@ public class MainActivity extends AppCompatActivity {
     private Uri mPhotoUri;
     private MainViewModel model;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            startActivity(new Intent(MainActivity.this, AuthActivity.class));
+            finish();
+            return;
+        }
+
         bindView();
         setupNavigation();
+        if (savedInstanceState == null) {
+            saveUser();
+        }
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(false);
 
+        // TODO (2) use safe args from NavigationUI
         if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
             Bundle extras = getIntent().getExtras();
-            Log.d(TAG, "onCreate: hasExtra(Intent.EXTRA_TEXT)");
             assert extras != null;
             if (extras.getInt(Intent.EXTRA_TEXT, 0) == RESULT_OK){
-                Toast.makeText(this, R.string.image_result_ok, Toast.LENGTH_SHORT).show();
+                showToast(R.string.image_result_ok);
             } else if (extras.getInt(Intent.EXTRA_TEXT, 0) == RESULT_CANCELED){
-                Toast.makeText(this, R.string.image_result_cancelled, Toast.LENGTH_SHORT).show();
+                showToast(R.string.image_result_cancelled);
             }
         }
     }
@@ -94,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         mBinding.setLifecycleOwner(this);
         navHeader.setLifecycleOwner(this);
         // View model
-        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(this.getApplicationContext());
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(getApplicationContext());
         model = ViewModelProviders.of(this, factory).get(MainViewModel.class);
         navHeader.setViewmodel(model);
     }
@@ -121,19 +126,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Start sign in if necessary
-        if (shouldStartSignIn()) {
-            startSignIn();
-            return;
-        }
-        saveUser();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if(resultCode == RESULT_OK) {
@@ -151,21 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             }
-        } else if (requestCode == RC_SIGN_IN) {
-            model.setIsSigningIn(false);
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-            if (resultCode == RESULT_OK) {
-                // Successfully signed in
-                saveUser();
-            }
-            if (resultCode != RESULT_OK && shouldStartSignIn()) {
-                if (response == null) {
-                    // User pressed back button
-                    Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
-                }
-                Log.w(TAG, "onActivityResult: response: " + response.getError().getErrorCode());
-                startSignIn();
-            }
         } else if (requestCode == PICK_PHOTO_CODE && resultCode == RESULT_OK) {
             if (data != null) {
                 model.uploadProfilePic(data.getData());
@@ -174,8 +152,7 @@ public class MainActivity extends AppCompatActivity {
         
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // If request is cancelled, the result arrays are empty
         if (requestCode == MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
@@ -204,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.w(TAG, "El usuario no tiene camara");
                 }
             } else {
-                Toast.makeText(this, "Permission for write storage not granted.", Toast.LENGTH_SHORT).show();
+                showToast(R.string.permission_write_storage_not_granted);
                 finish();
                 // The permission was denied, so we can show a message why we can't run the app
                 // and then close the app
@@ -213,67 +190,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
+    @Override public boolean onSupportNavigateUp() {
         // Allows NavigationUI to support proper up navigation or the drawer layout
         // drawer menu, depending on the situation
         hideKeyboard();
         return NavigationUI.navigateUp(navController, appBarConfiguration);
     }
 
-    private void saveUser() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        // The user has already signed in
-        if (user != null) {
-            // TODO (4) Ask for, is getPhotoUrl() == null?
-            //  in case that user register with email option
-            //  assign a default avatar
-            UserEntry userSigned = new UserEntry(user.getEmail(),
-                    null,
-                    user.getDisplayName(),
-                    user.getPhotoUrl() == null ? null : user.getPhotoUrl().toString(),
-                    null,"unspecified",null);
-            if (user.getMetadata()!= null && user.getMetadata().getCreationTimestamp() == user.getMetadata().getLastSignInTimestamp()) {
-                // The user is the first time that sign in
-                Log.d(TAG, "saveUser()");
-                model.createUser(userSigned);
-
-            } else {
-                // This is an existing user
-                Log.d(TAG, "initUser()");
-                model.initUser(user.getEmail());
-            }
-        }
-    }
-
-    private boolean shouldStartSignIn() {
-        Log.d(TAG, "shouldStartSignIn: " + !model.isIsSigningIn() + " " + (FirebaseAuth.getInstance().getCurrentUser() == null));
-        return (!model.isIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
-    }
-
-    private Intent buildSignInIntent() {
-        Log.d(TAG, "buildSignInIntent()");
-        AuthMethodPickerLayout customLayout = new AuthMethodPickerLayout
-                .Builder(R.layout.auth_method_picker)
-                .setGoogleButtonId(R.id.google_signin_button)
-                .setEmailButtonId(R.id.email_signin_button)
-                .setTosAndPrivacyPolicyId(R.id.custom_tos_pp)
-                .build();
-        AuthUI.SignInIntentBuilder builder = AuthUI.getInstance().createSignInIntentBuilder()
-                .setAuthMethodPickerLayout(customLayout)
-                .setIsSmartLockEnabled(false)
-                .setAvailableProviders(Arrays.asList(
-                        new AuthUI.IdpConfig.GoogleBuilder().build(),
-                        new AuthUI.IdpConfig.EmailBuilder().build()));
-
-        return builder.build();
-    }
-
-    private void startSignIn() {
-        Log.d(TAG, "startSignIn()");
-        startActivityForResult(buildSignInIntent(), RC_SIGN_IN);
-        model.setIsSigningIn(true);
-    }
+    private void saveUser() { model.saveUser(); }
 
     private void hideKeyboard() {
         try {
@@ -352,15 +276,15 @@ public class MainActivity extends AppCompatActivity {
         this.sendBroadcast(mediaScanIntent);
     }
 
-    private void showToast(String msg) {
+    private void showToast(@StringRes int msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     public void signOut(View view) {
-        Toast.makeText(this, R.string.action_sign_out, Toast.LENGTH_SHORT).show();
+        showToast(R.string.action_sign_out);
         signOut(MainActivity.this);
-        navController.navigate(R.id.action_editProfileFragment_to_home);
-        startSignIn();
+        navController.navigate(R.id.action_editProfileFragment_to_authActivity);
+        finish();
     }
 
     private void signOut(@NonNull Context context) {
@@ -372,9 +296,7 @@ public class MainActivity extends AppCompatActivity {
         return GoogleSignIn.getClient(context, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut();
     }
 
-    public void showOptions(View view) {
-        showToast("TODO: showOptions()");
-    }
+    public void showOptions(View view) { showToast(R.string.todo_implement); }
 
     public void onPickPhoto(View view) {
         // Create intent for picking a photo from the gallery
@@ -388,5 +310,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void deleteAccount(View view) { showToast("TODO: deleteAccount()"); }
+    public void deleteAccount(View view) { showToast(R.string.todo_implement); }
 }

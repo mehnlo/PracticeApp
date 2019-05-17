@@ -2,6 +2,7 @@ package android.example.com.practiceapp.ui.main.user;
 
 import android.example.com.practiceapp.ui.main.user.grid.GridPostFragment;
 import android.example.com.practiceapp.ui.main.user.list.ListPostFragment;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -16,15 +17,13 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         super(fm);
     }
 
-    @Override
-    public Fragment getItem(int position) {
+    @NonNull @Override public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
         if (position == 0) return new GridPostFragment();
         return new ListPostFragment();
     }
 
-    @Override
-    public int getCount() {
+    @Override public int getCount() {
         return 2;
     }
 }

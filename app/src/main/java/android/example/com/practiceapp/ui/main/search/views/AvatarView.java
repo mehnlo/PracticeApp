@@ -12,20 +12,17 @@ import com.bumptech.glide.Glide;
 import org.json.JSONObject;
 
 public class AvatarView extends AppCompatImageView implements AlgoliaHitView {
-    private final Context context;
 
     public AvatarView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.context = context;
     }
 
-    @Override
-    public void onUpdateView(JSONObject result) {
+    @Override public void onUpdateView(JSONObject result) {
         String photoUrl = result.optString(UserEntry.FIELD_PHOTO_URL);
         if (TextUtils.isEmpty(photoUrl)) {
-            setImageDrawable(context.getResources().getDrawable(R.drawable.placeholder_video));
+            setImageDrawable(getContext().getResources().getDrawable(R.drawable.placeholder_video));
             return;
         }
-        Glide.with(context).load(Uri.parse(photoUrl)).into(this);
+        Glide.with(getContext()).load(Uri.parse(photoUrl)).into(this);
     }
 }

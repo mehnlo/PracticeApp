@@ -14,27 +14,22 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class MainFragment extends Fragment {
-    private MainViewModel viewModel;
 
     public MainFragment() {}
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.content_main, container, false);
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState == null) {
-            MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
-            viewModel = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
-            RecyclerView recyclerView = getView().findViewById(R.id.recycler_view);
-            FeedAdapter adapter = new FeedAdapter();
-            viewModel.getFeed().observe(requireActivity(), adapter::submitList);
-            recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-            recyclerView.setAdapter(adapter);
-        }
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
+        MainViewModel viewModel = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
+        FeedAdapter adapter = new FeedAdapter();
+        viewModel.getFeed().observe(requireActivity(), adapter::submitList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setAdapter(adapter);
     }
 }

@@ -33,24 +33,21 @@ public class GridPostFragment extends Fragment {
 
     public GridPostFragment() { }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_content_grid_user, container, false);
+        binding.setLifecycleOwner(getViewLifecycleOwner());
+        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
+        model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
         return binding.getRoot();
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         subscribeToModel();
-
     }
 
     private void subscribeToModel() {
-        MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
-        model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
-        model.getUserSelected().observe(this, user -> {
+        model.getUserSelected().observe(getViewLifecycleOwner(), user -> {
             if (user != null) {
                 setUpAdapter(user);
             } else {
@@ -77,7 +74,7 @@ public class GridPostFragment extends Fragment {
         };
 
         FirestorePagingOptions<Post> options = new FirestorePagingOptions.Builder<Post>()
-                .setLifecycleOwner(this)
+                .setLifecycleOwner(getViewLifecycleOwner())
                 .setQuery(model.getBaseQuery(), config, parser)
                 .build();
 

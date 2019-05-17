@@ -116,9 +116,14 @@ public class PracticeAppRepository {
         LiveData<UserEntry> result;
         result = db.userDao().getUserByEmail(email);
         result.observeForever(userEntry -> {
-            if (userEntry == null) network.firestore.get(email).observeForever(userFromNetwork -> {
+            if (userEntry == null) {
+                Log.d(TAG, "get: UserEntry == null getting from network.");
+                network.firestore.get(email).observeForever(userFromNetwork -> {
                     if (userFromNetwork != null) mExecutors.diskIO().execute(() -> db.userDao().bulkInsert(userFromNetwork));
                 });
+            } else {
+                Log.d(TAG, "get: UserEntry != null getting from database.");
+            }
         });
         return result;
     }
@@ -129,7 +134,7 @@ public class PracticeAppRepository {
      * @return a @{@link LiveData} of {@link UserEntry}
      */
     public LiveData<UserEntry> create(UserEntry user) {
-        network.firestore.create(user).observeForever(userEntry -> mExecutors.diskIO().execute(() ->{
+        network.firestore.create(user).observeForever(userEntry -> mExecutors.diskIO().execute(() -> {
             if (userEntry != null) {
                 db.userDao().bulkInsert(userEntry);
             }
@@ -198,7 +203,7 @@ public class PracticeAppRepository {
         return network.firestore.getBaseQuery(email);
     }
 
-    // TODO (7) Create delete method
+    // TODO (3) Create delete method
 
     public MutableLiveData<Integer> uploadPhoto(String email, Photo photo) {
         return network.firestore.uploadPhoto(email, photo);
@@ -219,4 +224,9 @@ public class PracticeAppRepository {
     }
 
     public LiveData<WorkInfo> getStatus() { return mStatus; }
+
+    public void removeListeners() {
+        network.firestore.removeListeners();
+        network.functions.cancelAllWork();
+    }
 }

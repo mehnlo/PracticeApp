@@ -36,6 +36,7 @@ public class ListPostFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_content_list_user, container, false);
+        binding.setLifecycleOwner(getViewLifecycleOwner());
         return binding.getRoot();
     }
 
@@ -48,7 +49,7 @@ public class ListPostFragment extends Fragment {
     private void subscribeToModel() {
         MainViewModelFactory factory = InjectorUtils.provideMainViewModelFactory(requireContext());
         model = ViewModelProviders.of(requireActivity(), factory).get(MainViewModel.class);
-        model.getUserSelected().observe(this, user -> {
+        model.getUserSelected().observe(getViewLifecycleOwner(), user -> {
             if (user != null) {
                 setUpAdapter(user);
             } else {

@@ -47,4 +47,13 @@
     <string name="edit_profile_fragment_title">Edit Profile</string>
     <string name="action_profile_searched">Profile Searched</string>
     <string name="action_detail_post">Detail</string>
+    <string name="sign_in_cancelled">Sign in cancelled</string>
+    <string name="unknown_error">An unknown error occurred</string>
+    <string name="title_activity_sign_in">SignIn</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="profile_updated">Profile updated</string>
+    <string name="error_searching">Error searching&#160;</string>
+    <string name="reached_end_data">Reached end of data set</string>
+    <string name="error_ocurred">An error ocurred</string>
+    <string name="permission_write_storage_not_granted">Permission for write storage not granted</string>
 </resources>

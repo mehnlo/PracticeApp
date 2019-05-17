@@ -26,12 +26,12 @@
     </fragment>
     <fragment
         android:id="@+id/profile_searched"
-        android:name="android.example.com.practiceapp.ui.main.profileSearched.ProfileSearchedFragment"
+        android:name="android.example.com.practiceapp.ui.main.user.UserFragment"
         android:label="@string/action_profile_searched"
         tools:layout="@layout/fragment_user"/>
     <fragment
         android:id="@+id/profile"
-        android:name="android.example.com.practiceapp.ui.main.profile.ProfileFragment"
+        android:name="android.example.com.practiceapp.ui.main.user.UserFragment"
         android:label="@string/action_profile"
         tools:layout="@layout/fragment_user" >
         <action
@@ -49,12 +49,13 @@
         android:label="@string/edit_profile_fragment_title"
         tools:layout="@layout/fragment_edit_profile" >
         <action
-            android:id="@+id/action_editProfileFragment_to_home"
-            app:destination="@id/home"
+            android:id="@+id/action_editProfileFragment_to_authActivity"
+            app:destination="@+id/authActivity"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpToInclusive="false" />
     </fragment>
     <fragment
         android:id="@+id/detail_post"
@@ -68,6 +69,8 @@
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
         app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-
+    <activity
+        android:id="@+id/authActivity"
+        android:name="android.example.com.practiceapp.ui.auth.AuthActivity"
+        android:label="AuthActivity" />
 </navigation>

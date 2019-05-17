@@ -4,12 +4,14 @@ import androidx.lifecycle.MutableLiveData;
 import android.example.com.practiceapp.data.database.UserEntry;
 import android.example.com.practiceapp.data.models.Photo;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.storage.FirebaseStorage;
@@ -41,7 +43,7 @@ public class FirebaseFirestoreDataSource {
     private final CollectionReference followersRef;
     private final CollectionReference followingsRef;
     private final CollectionReference postsRef;
-
+    private ListenerRegistration counterListener;
     private FirebaseFirestoreDataSource(FirebaseFirestore firestore, FirebaseStorage storage) {
         this.firestore = firestore;
         this.storage = storage;
@@ -54,7 +56,7 @@ public class FirebaseFirestoreDataSource {
     /**
      * Get the singleton for this class
      */
-    public static FirebaseFirestoreDataSource getInstance(FirebaseFirestore firestore, FirebaseStorage storage) {
+    static FirebaseFirestoreDataSource getInstance(FirebaseFirestore firestore, FirebaseStorage storage) {
         Log.d(TAG, "Getting the firebase data source");
         if (sInstance == null) {
             synchronized (LOCK) {
@@ -103,7 +105,7 @@ public class FirebaseFirestoreDataSource {
             if (e != null) {
                 Log.w(TAG, "create '" + documentName + "' failed with: ", e.fillInStackTrace());
                 return;
-            } if (snapshots.exists()) {
+            } if (snapshots != null && snapshots.exists()) {
                 Log.d(TAG, "Existing user");
                 data.setValue(snapshots.toObject(UserEntry.class));
             } else {
@@ -172,15 +174,17 @@ public class FirebaseFirestoreDataSource {
         }).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                Log.d(TAG, "onComplete: " + downloadUri.toString());
-                documentReference
-                        .update(UserEntry.FIELD_PHOTO_URL, downloadUri.toString())
-                        .addOnCompleteListener(task1 -> {
-                            if (task1.isSuccessful()) {
-                                Log.d(TAG, "ProfileFragment pic updated succesfully");
-                            }
-                            Log.w(TAG, "Failed on update profile pic: ", task1.getException());
-                        });
+                if (downloadUri != null) {
+                    Log.d(TAG, "onComplete: " + downloadUri.toString());
+                    documentReference
+                            .update(UserEntry.FIELD_PHOTO_URL, downloadUri.toString())
+                            .addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    Log.d(TAG, "UserFragment pic updated successfully");
+                                }
+                                Log.w(TAG, "Failed on update profile pic: ", task1.getException());
+                            });
+                }
             } else {
                 // Handle failures
                 Log.w(TAG, "onComplete: task has fail");
@@ -195,7 +199,7 @@ public class FirebaseFirestoreDataSource {
         Query query = collectionReference.whereEqualTo(FieldPath.documentId(), documentSelected);
         query.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
-                Log.w(TAG, "Failed with ", e.fillInStackTrace());
+                Log.w(TAG, "Load follows failed with ", e.fillInStackTrace());
                 return;
             }
             if (snapshots != null && !snapshots.isEmpty()) {
@@ -209,24 +213,24 @@ public class FirebaseFirestoreDataSource {
         return data;
     }
 
+    /**
+     * Gets the counters of posts, followers and followed from the Network
+     * @param email is the User's email to be read
+     * @return {@link MutableLiveData} of {@link Map} which contain the number of posts,
+     * followers and followed of the user
+     */
     public MutableLiveData<Map<String, String>> loadCounters(String email) {
         final MutableLiveData<Map<String, String>> data = new MutableLiveData<>();
         DocumentReference documentReference = countersRef.document(email);
-        documentReference.addSnapshotListener((snapshots, e) -> {
+        counterListener = documentReference.addSnapshotListener((snapshots, e) -> {
             Map<String, String> aux = new HashMap<>();
             if (e != null) {
-                Log.w(TAG, "Failed with ", e.fillInStackTrace());
+                Log.w(TAG, "Load counters failed with ", e.fillInStackTrace());
                 return;
             } if (snapshots != null) {
-                if (snapshots.contains(POSTS)) {
-                    aux.put(POSTS, snapshots.get(POSTS).toString());
-                }
-                if (snapshots.contains(FOLLOWERS)) {
-                    aux.put(FOLLOWERS, snapshots.get(FOLLOWERS).toString());
-                }
-                if (snapshots.contains(FOLLOWS)) {
-                    aux.put(FOLLOWS, snapshots.get(FOLLOWS).toString());
-                }
+                if (snapshots.contains(POSTS)) aux.put(POSTS, snapshots.get(POSTS).toString());
+                if (snapshots.contains(FOLLOWERS)) aux.put(FOLLOWERS, snapshots.get(FOLLOWERS).toString());
+                if (snapshots.contains(FOLLOWS)) aux.put(FOLLOWS, snapshots.get(FOLLOWS).toString());
             }
             data.postValue(aux);
         });
@@ -238,7 +242,7 @@ public class FirebaseFirestoreDataSource {
 
         DocumentReference followingDocRef = followingsRef.document(email).collection(USER_FOLLOWING).document(emailSelected);
         DocumentReference followersDocRef = followersRef.document(emailSelected).collection(USER_FOLLOWERS).document(email);
-        // TODO (6) Create a cloud function to update counter
+        // TODO (4) Create a cloud function to update counter
         DocumentReference countFollowsRef = countersRef.document(email);
         DocumentReference countFollowersRef = countersRef.document(emailSelected);
         // Get a new write batch
@@ -257,11 +261,10 @@ public class FirebaseFirestoreDataSource {
     }
 
     public void unfollow(String email, String emailSelected) {
-        Map<String, Object> data = new HashMap<>();
 
         DocumentReference followingDocRef = followingsRef.document(email).collection(USER_FOLLOWING).document(emailSelected);
         DocumentReference followersDocRef = followersRef.document(emailSelected).collection(USER_FOLLOWERS).document(email);
-        // TODO (6) Create a cloud function to update counter
+        // TODO (4) Create a cloud function to update counter
         DocumentReference countFollowsRef = countersRef.document(email);
         DocumentReference countFollowersRef = countersRef.document(emailSelected);
         // Get a new write batch
@@ -304,7 +307,7 @@ public class FirebaseFirestoreDataSource {
             // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
         });
         uploadTask.continueWithTask(task -> {
-            if (!task.isSuccessful()) {
+            if (task.getException() != null && !task.isSuccessful()) {
                 throw task.getException();
             }
             // Continue with the task to get the download URL
@@ -312,14 +315,16 @@ public class FirebaseFirestoreDataSource {
         }).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                Log.d(TAG, "onComplete: " + downloadUri.toString());
-                photo.setPhotoUrl(downloadUri.toString());
+                if (downloadUri != null) {
+                    Log.d(TAG, "onComplete: " + downloadUri.toString());
+                    photo.setPhotoUrl(downloadUri.toString());
+                }
                 DocumentReference postDocRef = postsRef.document(email).collection("userPosts").document();
                 DocumentReference counterRef = countersRef.document(email);
                 final String photoID = postDocRef.getId();
                 WriteBatch batch = firestore.batch();
                 batch.set(postDocRef, photo.toMap());
-                // TODO (6) Create a cloud function to update counter
+                // TODO (4) Create a cloud function to update counter
                 batch.update(counterRef, "posts", FieldValue.increment(1));
                 batch.commit().addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "onSuccess: Photo written with ID: " + photoID);
@@ -336,4 +341,6 @@ public class FirebaseFirestoreDataSource {
         });
         return result;
     }
+
+    public void removeListeners() { if (counterListener != null) counterListener.remove(); }
 }

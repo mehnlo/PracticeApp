@@ -12,6 +12,8 @@ import android.example.com.practiceapp.data.models.Post;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.Query;
 
 /**
@@ -20,7 +22,6 @@ import com.google.firebase.firestore.Query;
 public class MainViewModel extends ViewModel {
     private static final String TAG = MainViewModel.class.getSimpleName();
     private static final String EDIT_PROFILE = "EDIT_PROFILE";
-    private boolean mIsSigningIn;
     private LiveData<UserEntry> userSigned;
     private MutableLiveData<UserEntry> userSelected;
     private MutableLiveData<String> buttonText;
@@ -31,22 +32,13 @@ public class MainViewModel extends ViewModel {
     private PracticeAppRepository mRepo;
     private LiveData<WorkInfo> mStatus;
 
+
     public MainViewModel(PracticeAppRepository repo) {
         this.mRepo = repo;
         this.userSigned = new MutableLiveData<>();
         this.userSelected = new MutableLiveData<>();
         this.postSelected = new MutableLiveData<>();
         mStatus = new MutableLiveData<>();
-        mIsSigningIn = false;
-    }
-
-
-    public boolean isIsSigningIn() {
-        return mIsSigningIn;
-    }
-
-    public void setIsSigningIn(boolean mIsSigningIn) {
-        this.mIsSigningIn = mIsSigningIn;
     }
 
     /**
@@ -71,7 +63,7 @@ public class MainViewModel extends ViewModel {
      *
      * @return
      */
-    public MutableLiveData<UserEntry> getUserSelected() { return userSelected; }
+    public LiveData<UserEntry> getUserSelected() { return userSelected; }
 
     /**
      *
@@ -99,6 +91,25 @@ public class MainViewModel extends ViewModel {
         });
     }
 
+    public void saveUser() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        // The user has already signed in
+        if (user != null) {
+            UserEntry userSigned = new UserEntry(user.getEmail(),
+                    null,
+                    user.getDisplayName(),
+                    user.getPhotoUrl() == null ? null : user.getPhotoUrl().toString(),
+                    null,"unspecified",null);
+            if (user.getMetadata()!= null && user.getMetadata().getCreationTimestamp() == user.getMetadata().getLastSignInTimestamp()) {
+                // The user is the first time that sign in
+                createUser(userSigned);
+
+            } else {
+                // This is an existing user
+                initUser(user.getEmail());
+            }
+        }
+    }
     /**
      *
      * @return
@@ -174,7 +185,7 @@ public class MainViewModel extends ViewModel {
      * Get the user saved from FirebaseFirestore
      * @param email The email user that will be loaded
      */
-    public void initUser(String email) {
+    private void initUser(String email) {
         Log.d(TAG, "initUser()");
         userSigned = mRepo.get(email);
         select(userSigned.getValue());
@@ -184,7 +195,7 @@ public class MainViewModel extends ViewModel {
      * Create the user on FirebaseFirestore
      * @param user The user that will be saved
      */
-    public void createUser(UserEntry user) {
+    private void createUser(UserEntry user) {
         Log.d(TAG, "createUser()");
         userSigned = mRepo.create(user);
         select(userSigned.getValue());
@@ -194,7 +205,7 @@ public class MainViewModel extends ViewModel {
     /**
      * Update the user on the Repository
      */
-    public void saveUser() {
+    public void updateUser() {
         mRepo.update(userSigned.getValue());
     }
 
@@ -210,8 +221,7 @@ public class MainViewModel extends ViewModel {
      *
      */
     public void signOut() {
-        userSigned = null;
-        userSelected = null;
+        mRepo.removeListeners();
     }
 
     public Query getBaseQuery() { return mRepo.getBaseQuery(userSelected.getValue().getEmail()); }
