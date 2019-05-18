@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">PracticeApp</string>
+    <string name="app_name" translatable="false">Pseudogram</string>
 
     <string name="setting_activity">Settings</string>
     <string name="post_title">Title of picture</string>
@@ -96,4 +96,5 @@
     <string name="error_ocurred">An error ocurred</string>
     <string name="todo_implement" translatable="false">TODO: implement</string>
     <string name="permission_write_storage_not_granted">Permission for write storage not granted</string>
+    <string name="error_sign_out">Sign out failed</string>
 </resources>

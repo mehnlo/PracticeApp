@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="android.example.com.practiceapp">
+    package="android.example.com.pseudogram">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <!--
@@ -43,7 +43,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="android.example.com.fileprovider"
+            android:authorities="android.example.com.pseudogram.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

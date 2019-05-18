@@ -2,6 +2,7 @@
 
 const functions = require('firebase-functions');
 const algoliasearch = require('algoliasearch');
+const REGION = 'europe-west1';
 
 // [START init_algolia]
 // Initialize Algolia, requires installing Aloglia dependencies:
@@ -11,7 +12,7 @@ const algoliasearch = require('algoliasearch');
 const ALGOLIA_APP_ID = functions.config().algolia.app_id;
 const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
 const ALGOLIA_SEARCH_KEY = functions.config().algolia.search_key;
-const ALGOLIA_INDEX_NAME = 'usuarios';
+const ALGOLIA_INDEX_NAME = 'users';
 
 const client = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_ADMIN_KEY);
 const index = client.initIndex(ALGOLIA_INDEX_NAME);
@@ -23,7 +24,7 @@ const PICTURE_UNSPECIFIED = functions.config().picture.unspecified;
 
 // [START update_index_function]
 // Triggered when a document is written to for the first time.
-exports.addFirestoreDataToAlgolia = functions.firestore
+exports.addFirestoreDataToAlgolia = functions.region(REGION).firestore
     .document('users/{userId}')
     .onCreate((snap, context) => {
         // Get the user documents
@@ -44,7 +45,7 @@ exports.addFirestoreDataToAlgolia = functions.firestore
     });
 
 // Triggered when a document already exists and has any value changed.
-exports.updateFirestoreDataToAlgolia = functions.firestore
+exports.updateFirestoreDataToAlgolia = functions.region(REGION).firestore
     .document('users/{userId}')
     .onUpdate((change, context) => {
         // Get the user documents
@@ -69,7 +70,7 @@ exports.updateFirestoreDataToAlgolia = functions.firestore
             });
     });
 // Triggered when a document with data is deleted.
-exports.deleteFirestoreDataToAlgolia = functions.firestore
+exports.deleteFirestoreDataToAlgolia = functions.region(REGION).firestore
     .document('users/{userId}')
     .onDelete((snap, context) => {
       // Get Algolia's objectdID from the Firebase object Key
@@ -156,9 +157,9 @@ app.get('/', (req, res) => {
 
 // Finally, pass our ExpressJS app to Cloud Functions as a function
 // called 'getSearchKey';
-exports.getSearchKey = functions.https.onRequest(app);
+exports.getSearchKey = functions.region(REGION).https.onRequest(app);
 // [END get_algolia_user_token]
-exports.loadFeed = functions.https.onCall((data, context) => {
+exports.loadFeed = functions.region(REGION).https.onCall((data, context) => {
     const email = context.auth.token.email || null;
     const db = admin.firestore();
     let promises = [];

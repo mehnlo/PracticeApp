@@ -7,7 +7,7 @@
     <data>
         <variable
             name="viewmodel"
-            type="android.example.com.practiceapp.ui.main.MainViewModel" />
+            type="android.example.com.pseudogram.ui.main.MainViewModel" />
     </data>
 
     <ScrollView

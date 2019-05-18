@@ -8,7 +8,7 @@ android {
     dataBinding.enabled true
 
     defaultConfig {
-        applicationId "android.example.com.practiceapp"
+        applicationId "android.example.com.pseudogram"
         minSdkVersion 19
         targetSdkVersion 28
         multiDexEnabled true
@@ -31,7 +31,7 @@ android {
 }
 
 dependencies {
-    def nav_version = "2.1.0-alpha03"
+    def nav_version = "2.1.0-alpha04"
     def futures_version = "1.0.0-beta01"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.google.android.material:material:1.0.0'
@@ -58,15 +58,11 @@ dependencies {
     annotationProcessor 'androidx.room:room-compiler:2.0.0'
     implementation 'androidx.work:work-runtime:2.0.1'
     implementation "androidx.concurrent:concurrent-futures:$futures_version"
-
+    // Firebase
     implementation 'com.google.firebase:firebase-core:16.0.9'
-    // Firebase Authentication
     implementation 'com.google.firebase:firebase-auth:17.0.0'
-    // Firebase Firestore
     implementation 'com.google.firebase:firebase-firestore:19.0.0'
-    // Firebase Storage
     implementation 'com.google.firebase:firebase-storage:17.0.0'
-    // Firebase Functions
     implementation 'com.google.firebase:firebase-functions:17.0.0'
     // FirebaseUI
     implementation 'com.firebaseui:firebase-ui-firestore:4.3.2'

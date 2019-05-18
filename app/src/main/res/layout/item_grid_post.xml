@@ -6,7 +6,7 @@
     <data>
         <variable
             name="item"
-            type="android.example.com.practiceapp.data.models.Post" />
+            type="android.example.com.pseudogram.data.models.Post" />
     </data>
 
     <androidx.cardview.widget.CardView

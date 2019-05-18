@@ -7,12 +7,12 @@
 
     <fragment
         android:id="@+id/home"
-        android:name="android.example.com.practiceapp.ui.main.MainFragment"
+        android:name="android.example.com.pseudogram.ui.main.MainFragment"
         android:label="@string/action_home"
         tools:layout="@layout/content_main" />
     <fragment
         android:id="@+id/search"
-        android:name="android.example.com.practiceapp.ui.main.search.SearchFragment"
+        android:name="android.example.com.pseudogram.ui.main.search.SearchFragment"
         android:label="@string/action_search"
         tools:layout="@layout/fragment_search">
         <action
@@ -26,12 +26,12 @@
     </fragment>
     <fragment
         android:id="@+id/profile_searched"
-        android:name="android.example.com.practiceapp.ui.main.user.UserFragment"
+        android:name="android.example.com.pseudogram.ui.main.user.UserFragment"
         android:label="@string/action_profile_searched"
         tools:layout="@layout/fragment_user"/>
     <fragment
         android:id="@+id/profile"
-        android:name="android.example.com.practiceapp.ui.main.user.UserFragment"
+        android:name="android.example.com.pseudogram.ui.main.user.UserFragment"
         android:label="@string/action_profile"
         tools:layout="@layout/fragment_user" >
         <action
@@ -45,7 +45,7 @@
     </fragment>
     <fragment
         android:id="@+id/edit_profile"
-        android:name="android.example.com.practiceapp.ui.main.editProfile.EditProfileFragment"
+        android:name="android.example.com.pseudogram.ui.main.editProfile.EditProfileFragment"
         android:label="@string/edit_profile_fragment_title"
         tools:layout="@layout/fragment_edit_profile" >
         <action
@@ -59,7 +59,7 @@
     </fragment>
     <fragment
         android:id="@+id/detail_post"
-        android:name="android.example.com.practiceapp.ui.main.detail.DetailPostFragment"
+        android:name="android.example.com.pseudogram.ui.main.detail.DetailPostFragment"
         android:label="@string/action_detail_post"
         tools:layout="@layout/fragment_detail_post" />
     <action
@@ -71,6 +71,6 @@
         app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     <activity
         android:id="@+id/authActivity"
-        android:name="android.example.com.practiceapp.ui.auth.AuthActivity"
+        android:name="android.example.com.pseudogram.ui.auth.AuthActivity"
         android:label="AuthActivity" />
 </navigation>

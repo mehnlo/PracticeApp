@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewmodel"
-            type="android.example.com.practiceapp.ui.post.PostViewModel" />
+            type="android.example.com.pseudogram.ui.post.PostViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
