@@ -230,15 +230,21 @@ exports.loadFeed = functions.region(REGION).https.onCall((data, context) => {
         await getPromises();
         // eslint-disable-next-line promise/always-return,promise/catch-or-return
         await Promise.all(promises).then(values => {
-            let arrayFeed = [];
-            // values typeof Array(Array(Object)) values[userFollowing...[post...{}]]
-            values.forEach((userFollowing) => {
-                userFollowing.forEach((post) => {
-                    arrayFeed.push(post);
+            // FIXED: (#11 Cloud functions:loadFeed)
+            // eslint-disable-next-line promise/always-return
+            if (values !== undefined) {
+                let arrayFeed = [];
+                // values typeof Array(Array(Object)) values[userFollowing...[post...{}]]
+                values.forEach((userFollowing) => {
+                    if (userFollowing !== undefined) {
+                        userFollowing.forEach((post) => {
+                            arrayFeed.push(post);
+                        });
+                    }
                 });
-            });
-            result = JSON.stringify(arrayFeed, null, '\t');
-            // result typeof Array(Object) result[post...{}]
+                result = JSON.stringify(arrayFeed, null, '\t');
+                // result typeof Array(Object) result[post...{}]
+            }
         });
         return {feed: result};
     }
