@@ -7,7 +7,7 @@
     <data>
         <variable
             name="item"
-            type="android.example.com.pseudogram.data.models.Post" />
+            type="android.example.com.pseudogram.data.database.PostEntry" />
     </data>
 
     <LinearLayout
@@ -31,32 +31,18 @@
 
                 <TextView
                     android:id="@+id/tv_item_date"
-                    android:text="@{item.photo.date}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginEnd="8dp"
-                    app:layout_constraintEnd_toStartOf="@+id/bt_item_options"
+                    android:text="@{item.date}"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="2 min Ago " />
 
-                <ImageButton
-                    android:id="@+id/bt_item_options"
-                    android:layout_width="20dp"
-                    android:layout_height="30dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="4dp"
-                    android:background="@null"
-                    android:contentDescription="@string/bt_content_description"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_more_vert_black_24dp" />
-
                 <ImageView
                     android:id="@+id/iv_item_user_profile"
-                    android:profileImage="@{item.user.photoUrl}"
+                    android:profileImage="@{item.profilePic}"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_marginStart="8dp"
@@ -71,7 +57,7 @@
 
                 <TextView
                     android:id="@+id/tv_item_username"
-                    android:text="@{item.user.displayName}"
+                    android:text="@{item.author}"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -90,7 +76,7 @@
 
                 <ImageView
                     android:id="@+id/iv_item_photo"
-                    android:postImage="@{item.photo.photoUrl}"
+                    android:postImage="@{item.photoUrl}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:contentDescription="@string/post_content_description"
@@ -101,7 +87,7 @@
 
                 <TextView
                     android:id="@+id/tv_item_title"
-                    android:text="@{item.photo.title}"
+                    android:text="@{item.title}"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -115,7 +101,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/iv_item_photo"
-                    tools:text="Titulillo de la imagen" />
+                    tools:text="Title of image" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>

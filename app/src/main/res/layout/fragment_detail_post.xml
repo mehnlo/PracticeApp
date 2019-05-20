@@ -5,6 +5,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+        <import type="android.view.View" />
         <variable
             name="viewmodel"
             type="android.example.com.pseudogram.ui.main.MainViewModel" />
@@ -36,7 +37,7 @@
 
                     <TextView
                         android:id="@+id/tv_item_date"
-                        android:text="@{viewmodel.postSelected.photo.date}"
+                        android:text="@{viewmodel.postSelected.date}"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
@@ -56,13 +57,14 @@
                         android:paddingLeft="8dp"
                         android:paddingRight="8dp"
                         android:onClick="showOptions"
+                        android:visibility="@{viewmodel.isMyProfile ? View.VISIBLE : View.GONE}"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:srcCompat="@drawable/ic_more_vert_black_24dp" />
 
                     <ImageView
                         android:id="@+id/iv_item_user_profile"
-                        android:profileImage="@{viewmodel.postSelected.user.photoUrl}"
+                        android:profileImage="@{viewmodel.postSelected.profilePic}"
                         android:layout_width="30dp"
                         android:layout_height="30dp"
                         android:layout_marginStart="8dp"
@@ -78,7 +80,7 @@
 
                     <TextView
                         android:id="@+id/tv_item_username"
-                        android:text="@{viewmodel.postSelected.user.username}"
+                        android:text="@{viewmodel.postSelected.author}"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -97,7 +99,7 @@
 
                     <ImageView
                         android:id="@+id/iv_item_photo"
-                        android:postImage="@{viewmodel.postSelected.photo.photoUrl}"
+                        android:postImage="@{viewmodel.postSelected.photoUrl}"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:contentDescription="@string/post_content_description"
@@ -108,7 +110,7 @@
 
                     <TextView
                         android:id="@+id/tv_item_title"
-                        android:text="@{viewmodel.postSelected.photo.title}"
+                        android:text="@{viewmodel.postSelected.title}"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -122,7 +124,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/iv_item_photo"
-                        tools:text="Titulillo de la imagen" />
+                        tools:text="Title of image" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>

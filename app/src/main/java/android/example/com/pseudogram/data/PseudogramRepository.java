@@ -5,17 +5,18 @@ import android.example.com.pseudogram.data.database.PostEntry;
 import android.example.com.pseudogram.data.database.PseudogramDatabase;
 import android.example.com.pseudogram.data.database.UserEntry;
 import android.example.com.pseudogram.data.firebase.NetworkDataSource;
-import android.example.com.pseudogram.data.models.Photo;
 import android.example.com.pseudogram.utilities.PseudogramDateUtils;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
 import androidx.work.WorkInfo;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.Query;
 
 import java.util.Date;
@@ -37,18 +38,16 @@ public class PseudogramRepository {
 
     private final LiveData<PagedList<PostEntry>> postList;
     private boolean mInitialized = false;
-    private LiveData<WorkInfo> mStatus;
 
     private PseudogramRepository(PseudogramDatabase database, NetworkDataSource networkDataSource, AppExecutors executors) {
         db = database;
         network = networkDataSource;
         mExecutors = executors;
-        mStatus = new MutableLiveData<>();
         LiveData<PostEntry[]> networkData = network.functions.getCurrentPosts();
         networkData.observeForever(newFeedFromNetwork -> mExecutors.diskIO().execute(() -> {
             // Delete old historical data
-            deleteOldData();
             Log.d(TAG, "Old feed deleted");
+            deleteOldData();
             // Insert our new feed data into PracticeApp's database
             db.postDao().bulkInsert(newFeedFromNetwork);
             Log.d(TAG, "New values inserted");
@@ -77,16 +76,17 @@ public class PseudogramRepository {
      */
     private synchronized void initializeData() {
 
-        // Only perfom initialization once per app lifetime. If initialization has already been
+        // Only perform initialization once per app lifetime. If initialization has already been
         // performed, we have nothing to do in this method.
         if (mInitialized) return;
         mInitialized = true;
 
         // This method call triggers PracticeApp to create its task to synchronize post data
         // periodically
-        mStatus = network.functions.scheduleRecurringFetchFeedSync();
+        network.functions.scheduleRecurringFetchFeedSync();
 
         // TODO (5) isFetchNeeded
+        feedSync();
     }
     /**
      * Deletes old weather data because we don't need to keep multiple day's data
@@ -200,17 +200,22 @@ public class PseudogramRepository {
         return network.firestore.getBaseQuery(email);
     }
 
-    // TODO (enhancement #4) Create delete method
+    public MutableLiveData<Task<Void>> deletePost(@NonNull String email, @NonNull String id) {
+        mExecutors.diskIO().execute(() -> db.postDao().deletePost(id));
+       return network.firestore.deletePost(email, id);
+    }
 
-    public MutableLiveData<Integer> uploadPhoto(String email, Photo photo) {
-        return network.firestore.uploadPhoto(email, photo);
+    public MutableLiveData<Integer> uploadPhoto(PostEntry post) {
+        return network.firestore.uploadPhoto(post);
     }
 
     /**
      * Functions related operations
      */
 
-
+    public void feedSync() {
+        network.functions.feedSync();
+    }
     /**
      *
      * @return
@@ -219,8 +224,6 @@ public class PseudogramRepository {
         initializeData();
         return postList;
     }
-
-    public LiveData<WorkInfo> getStatus() { return mStatus; }
 
     public void removeListeners() {
         network.firestore.removeListeners();

@@ -1,7 +1,5 @@
 package android.example.com.pseudogram.data.firebase;
 
-import android.content.Context;
-import android.example.com.pseudogram.AppExecutors;
 import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
@@ -28,7 +26,7 @@ public class NetworkDataSource {
     /**
      * Get the singleton for this class
      */
-    public static NetworkDataSource getInstance(Context context, AppExecutors executors) {
+    public static NetworkDataSource getInstance() {
         Log.d(TAG, "Getting the network data source");
         if (sInstance == null) {
             synchronized (LOCK) {
@@ -39,8 +37,7 @@ public class NetworkDataSource {
                 //  you must set the appropriate value at initialization. For example, on Android
                 //  you would initialize with getInstance(FirebaseApp app, String region)
                 FirebaseFunctions functions = FirebaseFunctions.getInstance(FirebaseApp.getInstance(), REGION);
-                FirebaseFunctionsDataSource functionsDataSource =
-                        FirebaseFunctionsDataSource.getInstance(context.getApplicationContext(),functions, executors);
+                FirebaseFunctionsDataSource functionsDataSource = FirebaseFunctionsDataSource.getInstance(functions);
                 sInstance = new NetworkDataSource(firestoreDataSource, functionsDataSource);
                 Log.d(TAG, "Made a new network data source");
             }

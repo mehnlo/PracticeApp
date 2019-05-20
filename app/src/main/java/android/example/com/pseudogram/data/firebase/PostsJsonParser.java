@@ -36,7 +36,7 @@ final class PostsJsonParser {
             // Get the JSON object representing the post
             JSONObject jsonPost = jsonPostsArray.getJSONObject(i);
 
-            // Create the Post entry object
+            // Create the PostEntry object
             PostEntry post = fromJson(jsonPost);
 
             postEntries[i] = post;

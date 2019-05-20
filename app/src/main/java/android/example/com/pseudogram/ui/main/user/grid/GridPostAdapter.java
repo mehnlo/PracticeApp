@@ -2,7 +2,7 @@ package android.example.com.pseudogram.ui.main.user.grid;
 
 import android.content.Context;
 import android.example.com.pseudogram.R;
-import android.example.com.pseudogram.data.models.Post;
+import android.example.com.pseudogram.data.database.PostEntry;
 import android.example.com.pseudogram.databinding.ItemGridPostBinding;
 import android.example.com.pseudogram.ui.main.MainViewModel;
 import android.view.LayoutInflater;
@@ -19,7 +19,7 @@ import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 import com.firebase.ui.firestore.paging.LoadingState;
 
-public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHolder> {
+public class GridPostAdapter extends FirestorePagingAdapter<PostEntry, GridPostViewHolder> {
     private ProgressBar mProgressBar;
     private Context mContext;
     private MainViewModel model;
@@ -32,7 +32,7 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
      * @param context
      * @param progressBar
      */
-    GridPostAdapter(@NonNull FirestorePagingOptions<Post> options, Context context, ProgressBar progressBar) {
+    GridPostAdapter(@NonNull FirestorePagingOptions<PostEntry> options, Context context, ProgressBar progressBar) {
         super(options);
         mContext = context;
         mProgressBar = progressBar;
@@ -42,7 +42,7 @@ public class GridPostAdapter extends FirestorePagingAdapter<Post, GridPostViewHo
         this.model = model;
     }
 
-    @Override protected void onBindViewHolder(@NonNull GridPostViewHolder holder, int position, @NonNull Post item) {
+    @Override protected void onBindViewHolder(@NonNull GridPostViewHolder holder, int position, @NonNull PostEntry item) {
         holder.bind(item);
     }
 

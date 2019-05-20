@@ -4,13 +4,11 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.example.com.pseudogram.NavGraphDirections;
 import android.example.com.pseudogram.NavGraphDirections.ActionGlobalPostActivity;
 import android.example.com.pseudogram.R;
 import android.example.com.pseudogram.databinding.ActivityMainBinding;
 import android.example.com.pseudogram.databinding.NavHeaderBinding;
 import android.example.com.pseudogram.ui.auth.AuthActivity;
-import android.example.com.pseudogram.ui.post.PostActivity;
 import android.example.com.pseudogram.ui.post.PostActivityDirections;
 import android.example.com.pseudogram.utilities.InjectorUtils;
 import android.net.Uri;
@@ -19,13 +17,18 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -50,14 +53,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int MY_PERMISSION_WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 88;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
     public static final int PICK_PHOTO_CODE = 1046;
-    public static final String PHOTO_URI = "photoUri";
-    public static final String EMAIL = "email";
 
     private ActivityMainBinding mBinding;
     private NavController navController;
@@ -88,7 +89,8 @@ public class MainActivity extends AppCompatActivity {
             Bundle extras = getIntent().getExtras();
             assert extras != null;
             if (extras.getInt(Intent.EXTRA_TEXT, 0) == RESULT_OK){
-                showToast(R.string.image_result_ok);
+                model.feedSync();
+                showSnackBar(R.string.image_result_ok);
             } else if (extras.getInt(Intent.EXTRA_TEXT, 0) == RESULT_CANCELED){
                 showToast(R.string.image_result_cancelled);
             }
@@ -294,7 +296,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void showOptions(View view) { showToast(R.string.todo_implement); }
+    public void showOptions(View view) {
+        ImageButton mButton = (ImageButton) view;
+        PopupMenu popup = new PopupMenu(mButton.getContext(), mButton);
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.menu_list_post_item, popup.getMenu());
+        popup.setOnMenuItemClickListener(this);
+        popup.show();
+    }
 
     public void onPickPhoto(View view) {
         // Create intent for picking a photo from the gallery
@@ -309,4 +318,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void deleteAccount(View view) { showToast(R.string.todo_implement); }
+
+    @Override public boolean onMenuItemClick(MenuItem item) {
+        if (item.getItemId() == R.id.action_remove) {
+            Log.d(TAG, "onMenuItemClick: action_remove " + model.getPostSelected().getValue().getId());
+            new AlertDialog.Builder(this)
+                    .setMessage(R.string.delete_dialog_message)
+                    .setPositiveButton(R.string.delete_dialog_confirm, (dialogInterface, i) -> model.deletePost(model.getPostSelected().getValue().getId())
+                            .observe(this, task -> {
+                                if (task != null) {
+                                    task.addOnCompleteListener(taskComplete -> {
+                                        if (task.isSuccessful()) {
+                                            showSnackBar(R.string.post_removed);
+                                            navController.navigateUp();
+                                        } else {
+                                            Log.w(TAG, "Error removing post", task.getException());
+                                        }
+                                    });
+                                }
+                    }))
+                    .setNegativeButton(R.string.no, null)
+                    .show();
+        }
+        return false;
+    }
+
+    public void showSnackBar(@StringRes int msg) {
+        Snackbar.make(mBinding.getRoot(), msg, Snackbar.LENGTH_LONG).show();
+    }
 }

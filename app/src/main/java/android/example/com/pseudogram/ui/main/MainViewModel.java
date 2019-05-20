@@ -3,19 +3,19 @@ package android.example.com.pseudogram.ui.main;
 import android.example.com.pseudogram.data.PseudogramRepository;
 import android.example.com.pseudogram.data.database.PostEntry;
 import android.example.com.pseudogram.data.database.UserEntry;
-import android.example.com.pseudogram.data.models.Post;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.PagedList;
-import androidx.work.WorkInfo;
 
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.Query;
@@ -32,9 +32,8 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<String> postCount;
     private MutableLiveData<String> followersCount;
     private MutableLiveData<String> followsCount;
-    private MutableLiveData<Post> postSelected;
+    private MutableLiveData<PostEntry> postSelected;
     private PseudogramRepository mRepo;
-    private LiveData<WorkInfo> mStatus;
 
 
     public MainViewModel(PseudogramRepository repo) {
@@ -42,7 +41,6 @@ public class MainViewModel extends ViewModel {
         this.userSigned = new MutableLiveData<>();
         this.userSelected = new MutableLiveData<>();
         this.postSelected = new MutableLiveData<>();
-        mStatus = new MutableLiveData<>();
     }
 
     /**
@@ -73,7 +71,7 @@ public class MainViewModel extends ViewModel {
      *
      * @return
      */
-    private boolean isMyProfile() {
+    public boolean isMyProfile() {
         Log.d(TAG, "isMyProfile: comparing '" + userSelected.getValue().getEmail() + "' equals '" + userSigned.getValue().getEmail() + "'.");
         return (userSelected.getValue().getEmail().equals(userSigned.getValue().getEmail()));
     }
@@ -228,11 +226,17 @@ public class MainViewModel extends ViewModel {
 
     public Query getBaseQuery() { return mRepo.getBaseQuery(userSelected.getValue().getEmail()); }
 
-    public void select(Post post) { postSelected.setValue(post); }
+    public void select(PostEntry post) { postSelected.setValue(post); }
 
-    public MutableLiveData<Post> getPostSelected() { return postSelected; }
+    public LiveData<PostEntry> getPostSelected() { return postSelected; }
 
     public LiveData<PagedList<PostEntry>> getFeed() { return mRepo.getCurrentFeed(); }
 
-    public LiveData<WorkInfo> getStatus() { return mStatus; }
+    public LiveData<Task<Void>> deletePost(@NonNull String id) {
+        String email = userSigned.getValue().getEmail();
+        return mRepo.deletePost(email, id);
+    }
+
+    public void feedSync() { mRepo.feedSync(); }
+
 }

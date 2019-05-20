@@ -30,7 +30,7 @@ public class PseudogramFirebaseWorker extends ListenableWorker {
 
 
     private Object attachCompleter(CallbackToFutureAdapter.Completer<Result> completer) {
-        NetworkDataSource network = InjectorUtils.provideNetworkDataSource(this.getApplicationContext());
+        NetworkDataSource network = InjectorUtils.provideNetworkDataSource();
         return network.functions
                 .fetchFeed()
                 .addOnCompleteListener(task -> {

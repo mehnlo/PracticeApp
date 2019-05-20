@@ -1,9 +1,8 @@
 package android.example.com.pseudogram.ui.main.user.grid;
 
 import android.example.com.pseudogram.R;
+import android.example.com.pseudogram.data.database.PostEntry;
 import android.example.com.pseudogram.data.database.UserEntry;
-import android.example.com.pseudogram.data.models.Photo;
-import android.example.com.pseudogram.data.models.Post;
 import android.example.com.pseudogram.databinding.FragmentContentGridUserBinding;
 import android.example.com.pseudogram.ui.main.MainViewModel;
 import android.example.com.pseudogram.ui.main.MainViewModelFactory;
@@ -65,17 +64,20 @@ public class GridPostFragment extends Fragment {
                 .setPageSize(PAGE_SIZE)
                 .build();
 
-        SnapshotParser<Post> parser = snapshot -> {
-            Post post = new Post();
-            post.setUser(user);
+        SnapshotParser<PostEntry> parser = snapshot -> {
+            PostEntry post = new PostEntry();
             if (snapshot.exists()) {
-                Photo photo = snapshot.toObject(Photo.class);
-                post.setPhoto(photo);
+                post = new PostEntry(snapshot.getId(),
+                        user.getEmail(),
+                        user.getPhotoUrl(),
+                        snapshot.getString(PostEntry.FIELD_TITLE),
+                        snapshot.getString(PostEntry.FIELD_PHOTO_URL),
+                        snapshot.getDate(PostEntry.FIELD_DATE));
             }
             return post;
         };
 
-        FirestorePagingOptions<Post> options = new FirestorePagingOptions.Builder<Post>()
+        FirestorePagingOptions<PostEntry> options = new FirestorePagingOptions.Builder<PostEntry>()
                 .setLifecycleOwner(getViewLifecycleOwner())
                 .setQuery(model.getBaseQuery(), config, parser)
                 .build();

@@ -31,7 +31,7 @@
                     android:id="@+id/iv_post_photo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:postImage="@{viewmodel.postSelected.photo.photoUrl}"
+                    android:postImage="@{viewmodel.postSelected.photoUrl}"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="16dp"
@@ -42,7 +42,7 @@
 
                 <EditText
                     android:id="@+id/et_post_title"
-                    android:text="@={viewmodel.postSelected.photo.title}"
+                    android:text="@={viewmodel.postSelected.title}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"

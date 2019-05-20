@@ -6,7 +6,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {UserEntry.class, PostEntry.class}, version = 1, exportSchema = false)
+@Database(entities = {UserEntry.class, PostEntry.class}, version = 2, exportSchema = false)
 @TypeConverters(DateConverter.class)
 public abstract class PseudogramDatabase extends RoomDatabase {
     private static final String DATABASE_NAME = "practiceApp";

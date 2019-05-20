@@ -1,7 +1,7 @@
 package android.example.com.pseudogram.ui.main.user.grid;
 
 import android.example.com.pseudogram.R;
-import android.example.com.pseudogram.data.models.Post;
+import android.example.com.pseudogram.data.database.PostEntry;
 import android.example.com.pseudogram.databinding.ItemGridPostBinding;
 import android.example.com.pseudogram.ui.main.MainViewModel;
 import android.view.View;
@@ -22,7 +22,7 @@ public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnCli
         itemBinding.cardView.setOnClickListener(this);
     }
 
-    public void bind(Post item) {
+    public void bind(PostEntry item) {
         itemBinding.setItem(item);
         itemBinding.executePendingBindings();
     }

@@ -12,12 +12,11 @@ public class InjectorUtils {
     private static PseudogramRepository provideRepository(Context context) {
         PseudogramDatabase database = PseudogramDatabase.getInstance(context.getApplicationContext());
         AppExecutors executors = AppExecutors.getInstance();
-        NetworkDataSource network = NetworkDataSource.getInstance(context.getApplicationContext(), executors);
+        NetworkDataSource network = NetworkDataSource.getInstance();
         return PseudogramRepository.getInstance(database, network, executors);
     }
-    public static NetworkDataSource provideNetworkDataSource(Context context) {
-        AppExecutors executors = AppExecutors.getInstance();
-        return NetworkDataSource.getInstance(context.getApplicationContext(), executors);
+    public static NetworkDataSource provideNetworkDataSource() {
+        return NetworkDataSource.getInstance();
     }
     public static MainViewModelFactory provideMainViewModelFactory(Context context) {
         PseudogramRepository repository = provideRepository(context.getApplicationContext());

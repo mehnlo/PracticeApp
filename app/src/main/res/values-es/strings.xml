@@ -57,4 +57,7 @@
     <string name="error_ocurred">Un error ha ocurrido</string>
     <string name="permission_write_storage_not_granted">Permiso de escritura en almacenamiento denegado</string>
     <string name="error_sign_out">No se ha podido cerrar la sesión</string>
+    <string name="post_removed">Publicacion eliminada</string>
+    <string name="delete_dialog_confirm">Si, borrala</string>
+    <string name="delete_dialog_message">¿Esta seguro de querer borrar la publicación?</string>
 </resources>

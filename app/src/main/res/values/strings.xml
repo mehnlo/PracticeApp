@@ -97,4 +97,8 @@
     <string name="todo_implement" translatable="false">TODO: implement</string>
     <string name="permission_write_storage_not_granted">Permission for write storage not granted</string>
     <string name="error_sign_out">Sign out failed</string>
+    <string name="post_removed">Post removed</string>
+    <string name="delete_dialog_message">Are you sure you want to delete this post?</string>
+    <string name="delete_dialog_confirm">Yes, delete it</string>
+    <string name="no" translatable="false">No</string>
 </resources>

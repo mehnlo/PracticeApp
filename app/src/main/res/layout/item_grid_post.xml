@@ -6,7 +6,7 @@
     <data>
         <variable
             name="item"
-            type="android.example.com.pseudogram.data.models.Post" />
+            type="android.example.com.pseudogram.data.database.PostEntry" />
     </data>
 
     <androidx.cardview.widget.CardView
@@ -20,7 +20,7 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:postImage="@{item.photo.photoUrl}"
+            android:postImage="@{item.photoUrl}"
             android:layout_width="160dp"
             android:layout_height="120dp"
             android:scaleType="centerCrop"

@@ -1,14 +1,18 @@
 package android.example.com.pseudogram.data.firebase;
 
+import android.example.com.pseudogram.data.database.PostEntry;
 import android.example.com.pseudogram.data.database.UserEntry;
-import android.example.com.pseudogram.data.models.Photo;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -19,8 +23,12 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
@@ -244,7 +252,6 @@ public class FirebaseFirestoreDataSource {
 
         DocumentReference followingDocRef = followingsRef.document(email).collection(USER_FOLLOWING).document(emailSelected);
         DocumentReference followersDocRef = followersRef.document(emailSelected).collection(USER_FOLLOWERS).document(email);
-        // TODO (enhancement #7) Create a cloud function to update counter
         DocumentReference countFollowsRef = countersRef.document(email);
         DocumentReference countFollowersRef = countersRef.document(emailSelected);
         // Get a new write batch
@@ -266,7 +273,6 @@ public class FirebaseFirestoreDataSource {
 
         DocumentReference followingDocRef = followingsRef.document(email).collection(USER_FOLLOWING).document(emailSelected);
         DocumentReference followersDocRef = followersRef.document(emailSelected).collection(USER_FOLLOWERS).document(email);
-        // TODO (enhancement #7) Create a cloud function to update counter
         DocumentReference countFollowsRef = countersRef.document(email);
         DocumentReference countFollowersRef = countersRef.document(emailSelected);
         // Get a new write batch
@@ -286,13 +292,15 @@ public class FirebaseFirestoreDataSource {
 
     public Query getBaseQuery(String email) {
         String postsPath = "/posts/" + email + "/userPosts";
-        return firestore.collection(postsPath).orderBy(Photo.FIELD_DATE, Query.Direction.DESCENDING);
+        return firestore.collection(postsPath).orderBy(PostEntry.FIELD_DATE, Query.Direction.DESCENDING);
     }
 
-    public MutableLiveData<Integer> uploadPhoto(String email, Photo photo) {
+    public MutableLiveData<Integer> uploadPhoto(PostEntry post) {
         final MutableLiveData<Integer> result = new MutableLiveData<>();
-        Uri photoUri = Uri.parse(photo.getPhotoUrl());
-        String location = "users/" + email + "/posts/" + photoUri.getLastPathSegment();
+        DocumentReference postDocRef = postsRef.document(post.getAuthor()).collection("userPosts").document();
+        post.setId(postDocRef.getId());
+        Uri photoUri = Uri.parse(post.getPhotoUrl());
+        String location = "users/" + post.getAuthor() + "/posts/" + post.getId();
         StorageReference mStorageRef = storage.getReference(location);
         // Create file metadata including the content type
         StorageMetadata metadata = new StorageMetadata.Builder()
@@ -319,17 +327,14 @@ public class FirebaseFirestoreDataSource {
                 Uri downloadUri = task.getResult();
                 if (downloadUri != null) {
                     Log.d(TAG, "onComplete: " + downloadUri.toString());
-                    photo.setPhotoUrl(downloadUri.toString());
+                    post.setPhotoUrl(downloadUri.toString());
                 }
-                DocumentReference postDocRef = postsRef.document(email).collection("userPosts").document();
-                DocumentReference counterRef = countersRef.document(email);
-                final String photoID = postDocRef.getId();
+                DocumentReference counterRef = countersRef.document(post.getAuthor());
                 WriteBatch batch = firestore.batch();
-                batch.set(postDocRef, photo.toMap());
-                // TODO (enhancement #7) Create a cloud function to update counter
+                batch.set(postDocRef, post.toMap());
                 batch.update(counterRef, "posts", FieldValue.increment(1));
                 batch.commit().addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "onSuccess: Photo written with ID: " + photoID);
+                    Log.d(TAG, "onSuccess: Photo written with ID: " + post.getId());
                     result.postValue(RESULT_OK);
                 }).addOnFailureListener(e -> {
                     Log.w(TAG, "onFailure: Error adding photo", e);
@@ -339,6 +344,27 @@ public class FirebaseFirestoreDataSource {
             } else {
                 // Handle failures
                 Log.w(TAG, "onComplete: task has fail");
+            }
+        });
+        return result;
+    }
+
+    public MutableLiveData<Task<Void>> deletePost(@NonNull String email, @NonNull String id) {
+        final MutableLiveData<Task<Void>> result = new MutableLiveData<>();
+        String locationPath = "users/" + email + "/posts/" + id;
+        StorageReference mStorageRef = storage.getReference(locationPath);
+        Task<Void> deleteTask = mStorageRef.delete();
+        deleteTask.addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "File '" + id + " of '" + email + " in storage removed successfully.");
+                DocumentReference docRef = postsRef.document(email).collection("userPosts").document(id);
+                DocumentReference counterRef = countersRef.document(email);
+                WriteBatch batch = firestore.batch();
+                batch.delete(docRef);
+                batch.update(counterRef, "posts", FieldValue.increment(-1));
+                result.postValue(batch.commit());
+            } else {
+                Log.w(TAG, "Error removing file", task.getException());
             }
         });
         return result;
