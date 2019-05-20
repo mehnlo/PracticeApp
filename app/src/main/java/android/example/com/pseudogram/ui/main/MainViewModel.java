@@ -170,7 +170,7 @@ public class MainViewModel extends ViewModel {
         String emailSelected = userSelected.getValue().getEmail();
         Log.d(TAG, "'" + email + "' started to follow '" + emailSelected + "'.");
         mRepo.follow(email, emailSelected);
-        // TODO (1) Send notification to the userSelected
+        // TODO (#enhancement 5) Send notification to the userSelected
     }
 
     /**
@@ -180,7 +180,7 @@ public class MainViewModel extends ViewModel {
         String email = userSigned.getValue().getEmail();
         String emailSelected = userSelected.getValue().getEmail();
         Log.d(TAG, "'" + email + "' stopped following '" + emailSelected + "'.");
-        mRepo.unfollow(email, emailSelected);
+        mRepo.unFollow(email, emailSelected);
     }
 
     /**

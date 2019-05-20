@@ -52,7 +52,7 @@
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textStyle="bold"
-            tools:text="Editar perfil" />
+            tools:text="@string/edit_profile_fragment_title" />
 
         <RelativeLayout
             android:id="@+id/rellay2"

@@ -81,9 +81,7 @@ public class UserFragment extends Fragment {
 
     private void editProfile(View view) {
         showToast(R.string.edit_profile_fragment_title);
-        // FIXME: Cuando se va desde un perfil buscado,
-        //  java.lang.IllegalArgumentException: navigation destination
-        //  android.example.com.pseudogram:id/action_profile_to_editProfile is unknown to this NavController
+        // FIXED: (Bug #9 Edit profile fragment not found)
         Navigation.findNavController(view).navigate(R.id.action_profile_to_editProfile);
     }
 

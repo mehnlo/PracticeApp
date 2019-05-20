@@ -45,6 +45,7 @@ public class FirebaseFirestoreDataSource {
     private final CollectionReference followingsRef;
     private final CollectionReference postsRef;
     private ListenerRegistration counterListener;
+
     private FirebaseFirestoreDataSource(FirebaseFirestore firestore, FirebaseStorage storage) {
         this.firestore = firestore;
         this.storage = storage;
@@ -243,7 +244,7 @@ public class FirebaseFirestoreDataSource {
 
         DocumentReference followingDocRef = followingsRef.document(email).collection(USER_FOLLOWING).document(emailSelected);
         DocumentReference followersDocRef = followersRef.document(emailSelected).collection(USER_FOLLOWERS).document(email);
-        // TODO (4) Create a cloud function to update counter
+        // TODO (enhancement #7) Create a cloud function to update counter
         DocumentReference countFollowsRef = countersRef.document(email);
         DocumentReference countFollowersRef = countersRef.document(emailSelected);
         // Get a new write batch
@@ -261,11 +262,11 @@ public class FirebaseFirestoreDataSource {
         });
     }
 
-    public void unfollow(String email, String emailSelected) {
+    public void unFollow(String email, String emailSelected) {
 
         DocumentReference followingDocRef = followingsRef.document(email).collection(USER_FOLLOWING).document(emailSelected);
         DocumentReference followersDocRef = followersRef.document(emailSelected).collection(USER_FOLLOWERS).document(email);
-        // TODO (4) Create a cloud function to update counter
+        // TODO (enhancement #7) Create a cloud function to update counter
         DocumentReference countFollowsRef = countersRef.document(email);
         DocumentReference countFollowersRef = countersRef.document(emailSelected);
         // Get a new write batch
@@ -325,7 +326,7 @@ public class FirebaseFirestoreDataSource {
                 final String photoID = postDocRef.getId();
                 WriteBatch batch = firestore.batch();
                 batch.set(postDocRef, photo.toMap());
-                // TODO (4) Create a cloud function to update counter
+                // TODO (enhancement #7) Create a cloud function to update counter
                 batch.update(counterRef, "posts", FieldValue.increment(1));
                 batch.commit().addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "onSuccess: Photo written with ID: " + photoID);

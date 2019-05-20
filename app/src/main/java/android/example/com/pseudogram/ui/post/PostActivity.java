@@ -10,16 +10,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 
+
 public class PostActivity extends AppCompatActivity {
-    private static final String TAG = PostActivity.class.getSimpleName();
-    public static final String PHOTO_URI = "photoUri";
-    public static final String EMAIL = "email";
     private ActivityPostBinding binding;
     private PostViewModel viewModel;
 
@@ -39,11 +36,11 @@ public class PostActivity extends AppCompatActivity {
     }
 
     private void captureIntent() {
-        Bundle extras = this.getIntent().getExtras();
-        if (extras != null) {
-            viewModel.setEmail(extras.getString(EMAIL));
-            viewModel.setPhotoUrl(extras.getString(PHOTO_URI));
-        }
+        Bundle extras = getIntent().getExtras();
+        String email = PostActivityArgs.fromBundle(extras).getEmail();
+        String photoUrl = PostActivityArgs.fromBundle(extras).getPhotoUrl();
+        viewModel.setEmail(email);
+        viewModel.setPhotoUrl(photoUrl);
     }
 
     private void setupNavigation() {
@@ -84,12 +81,10 @@ public class PostActivity extends AppCompatActivity {
     }
 
     private void showProgressLoading(){
-        ProgressBar pb = findViewById(R.id.pb_loading_indicator);
-        pb.setVisibility(View.VISIBLE);
+        binding.pbLoadingIndicator.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressLoading(){
-        ProgressBar pb = findViewById(R.id.pb_loading_indicator);
-        pb.setVisibility(View.INVISIBLE);
+        binding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
     }
 }

@@ -45,8 +45,8 @@
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title" translatable="false">Practice App</string>
-    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
+    <string name="nav_header_title" translatable="false">Pseudogram</string>
+    <string name="nav_header_subtitle" translatable="false">Jhon@doe.com</string>
     <string name="nav_header_desc" translatable="false">Navigation header</string>
     <!-- - - - - - - - - - - -->
     <!--       Gallery       -->

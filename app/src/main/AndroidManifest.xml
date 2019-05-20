@@ -39,7 +39,11 @@
         <activity
             android:name=".ui.post.PostActivity"
             android:label="@string/post_activity"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTop">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.main.MainActivity" />
+        </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"

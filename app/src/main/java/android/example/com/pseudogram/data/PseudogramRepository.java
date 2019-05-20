@@ -192,15 +192,15 @@ public class PseudogramRepository {
      * @param email
      * @param emailSelected
      */
-    public void unfollow(String email, String emailSelected) {
-        network.firestore.unfollow(email, emailSelected);
+    public void unFollow(String email, String emailSelected) {
+        network.firestore.unFollow(email, emailSelected);
     }
 
     public Query getBaseQuery(String email) {
         return network.firestore.getBaseQuery(email);
     }
 
-    // TODO (3) Create delete method
+    // TODO (enhancement #4) Create delete method
 
     public MutableLiveData<Integer> uploadPhoto(String email, Photo photo) {
         return network.firestore.uploadPhoto(email, photo);

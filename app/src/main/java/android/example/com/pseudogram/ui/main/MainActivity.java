@@ -4,11 +4,14 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.example.com.pseudogram.NavGraphDirections;
+import android.example.com.pseudogram.NavGraphDirections.ActionGlobalPostActivity;
 import android.example.com.pseudogram.R;
 import android.example.com.pseudogram.databinding.ActivityMainBinding;
 import android.example.com.pseudogram.databinding.NavHeaderBinding;
 import android.example.com.pseudogram.ui.auth.AuthActivity;
 import android.example.com.pseudogram.ui.post.PostActivity;
+import android.example.com.pseudogram.ui.post.PostActivityDirections;
 import android.example.com.pseudogram.utilities.InjectorUtils;
 import android.net.Uri;
 import android.os.Build;
@@ -81,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(false);
 
-        // TODO (2) use safe args from NavigationUI
         if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
             Bundle extras = getIntent().getExtras();
             assert extras != null;
@@ -133,13 +135,8 @@ public class MainActivity extends AppCompatActivity {
                 galleryAddPic();
                 model.getUserSigned().observe(this, user -> {
                     if (user != null) {
-                        Intent intentToPostActivity = new Intent(MainActivity.this, PostActivity.class);
-                        Bundle extras = new Bundle();
-                        extras.putString(PHOTO_URI, mPhotoUri.toString());
-                        extras.putString(EMAIL, user.getEmail());
-
-                        intentToPostActivity.putExtras(extras);
-                        startActivity(intentToPostActivity);
+                        ActionGlobalPostActivity action = PostActivityDirections.actionGlobalPostActivity(mPhotoUri.toString(), user.getEmail());
+                        navController.navigate(action);
                     }
                 });
 
@@ -172,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                     // Continue only if the File was successfully created
                     if (photoFile != null) {
                         mPhotoUri = FileProvider.getUriForFile(this,
-                                "android.example.com.fileprovider",
+                                "android.example.com.pseudogram.fileprovider",
                                 photoFile);
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
@@ -256,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmmss", new Locale("es", "ES")).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_PracticeApp";
+        String imageFileName = "JPEG_" + timeStamp + "_Pseudogram";
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         Log.d(TAG, "createImageFile: imageFileName:" + imageFileName);
         File image = File.createTempFile(

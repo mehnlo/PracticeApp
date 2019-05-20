@@ -1,6 +1,7 @@
 package android.example.com.pseudogram.ui.main.search;
 
 import android.content.Context;
+import android.example.com.pseudogram.BuildConfig;
 import android.example.com.pseudogram.R;
 import android.example.com.pseudogram.data.database.UserEntry;
 import android.example.com.pseudogram.ui.main.MainViewModel;
@@ -41,9 +42,9 @@ import org.json.JSONObject;
 public class SearchFragment extends Fragment {
 
     public static final String TAG = SearchFragment.class.getSimpleName();
-    private static final String ALGOLIA_APP_ID = "SUQ83OJMQA";
-    private static final String ALGOLIA_SEARCH_API_KEY = "7539392834c0d246878e19b6951f000c";
-    private static final String ALGOLIA_INDEX_NAME = "users";
+    private static final String ALGOLIA_APP_ID = BuildConfig.AlgoliaApiKey;
+    private static final String ALGOLIA_SEARCH_API_KEY = BuildConfig.AlgoliaSearchApiKey;
+    private static final String ALGOLIA_INDEX_NAME = BuildConfig.AlgoliaIndexName;
 
     private MainViewModel model;
     private Searcher mSearcher;
@@ -126,7 +127,7 @@ public class SearchFragment extends Fragment {
                     json.optString(UserEntry.FIELD_GENDER, null),
                     null);
             model.select(user);
-            Navigation.findNavController(v).navigate(R.id.action_search_to_profileSearched);
+            Navigation.findNavController(v).navigate(R.id.action_search_to_other_profile);
         });
     }
 

@@ -29,6 +29,6 @@ public class GridPostViewHolder extends RecyclerView.ViewHolder implements OnCli
 
     @Override public void onClick(View view) {
         model.select(itemBinding.getItem());
-        Navigation.findNavController(view).navigate(R.id.action_global_user_to_defailPost);
+        Navigation.findNavController(view).navigate(R.id.action_profile_to_detail_post);
     }
 }

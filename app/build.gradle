@@ -19,9 +19,20 @@ android {
         resConfigs "en", "es"
     }
     buildTypes {
+        debug {
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            buildConfigField 'String', "AlgoliaApiKey", Pseudogram_AlgoliaAppId
+            buildConfigField 'String', "AlgoliaSearchApiKey", Pseudogram_AlgoliaSearchApiKey
+            buildConfigField 'String', "AlgoliaIndexName", Pseudogram_AlgoliaIndexName
+        }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            buildConfigField 'String', "AlgoliaApiKey", Pseudogram_AlgoliaAppId
+            buildConfigField 'String', "AlgoliaSearchApiKey", Pseudogram_AlgoliaSearchApiKey
+            buildConfigField 'String', "AlgoliaIndexName", Pseudogram_AlgoliaIndexName
         }
     }
     compileOptions {
@@ -87,6 +98,7 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'
+apply plugin: "androidx.navigation.safeargs"
 repositories {
     mavenCentral()
 }

@@ -16,7 +16,7 @@
         android:label="@string/action_search"
         tools:layout="@layout/fragment_search">
         <action
-            android:id="@+id/action_search_to_profileSearched"
+            android:id="@+id/action_search_to_other_profile"
             app:destination="@id/profile_searched"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
@@ -28,7 +28,24 @@
         android:id="@+id/profile_searched"
         android:name="android.example.com.pseudogram.ui.main.user.UserFragment"
         android:label="@string/action_profile_searched"
-        tools:layout="@layout/fragment_user"/>
+        tools:layout="@layout/fragment_user">
+        <action
+            android:id="@+id/action_profile_to_detail_post"
+            app:destination="@id/detail_post"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/profile_searched" />
+        <action
+            android:id="@+id/action_profile_to_editProfile"
+            app:destination="@id/edit_profile"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/profile_searched" />
+    </fragment>
     <fragment
         android:id="@+id/profile"
         android:name="android.example.com.pseudogram.ui.main.user.UserFragment"
@@ -37,6 +54,14 @@
         <action
             android:id="@+id/action_profile_to_editProfile"
             app:destination="@id/edit_profile"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/profile" />
+        <action
+            android:id="@+id/action_profile_to_detail_post"
+            app:destination="@id/detail_post"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -62,15 +87,28 @@
         android:name="android.example.com.pseudogram.ui.main.detail.DetailPostFragment"
         android:label="@string/action_detail_post"
         tools:layout="@layout/fragment_detail_post" />
-    <action
-        android:id="@+id/action_global_user_to_defailPost"
-        app:destination="@id/detail_post"
-        app:enterAnim="@anim/nav_default_enter_anim"
-        app:exitAnim="@anim/nav_default_exit_anim"
-        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     <activity
         android:id="@+id/authActivity"
         android:name="android.example.com.pseudogram.ui.auth.AuthActivity"
         android:label="AuthActivity" />
+    <activity
+        android:id="@+id/postActivity"
+        android:name="android.example.com.pseudogram.ui.post.PostActivity"
+        android:label="@string/post_activity"
+        tools:layout="@layout/activity_post">
+        <argument android:name="photoUrl" app:argType="string" app:nullable="false"/>
+        <argument android:name="email" app:argType="string" app:nullable="false" />
+    </activity>
+    <action
+        android:id="@+id/action_global_postActivity"
+        app:destination="@id/postActivity"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popUpTo="@id/home"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        app:launchSingleTop="true">
+        <argument android:name="photoUrl" app:argType="string" app:nullable="false"/>
+        <argument android:name="email" app:argType="string" app:nullable="false" />
+    </action>
 </navigation>

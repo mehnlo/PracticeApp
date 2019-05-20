@@ -98,10 +98,12 @@ public class FirebaseFunctionsDataSource {
                 // As long as there are Posts, update the LiveData storing the most recent
                 // posts. This will trigger observers of that LiveData, such as the
                 // PseudogramRepository
-                if (postsResponse != null && postsResponse.getPostsFeed().length != 0) {
+                if(postsResponse != null) {
                     Log.d(TAG, "JSON not null and has " + postsResponse.getPostsFeed().length + " values.");
-                    // Will eventually do something with the downloaded data
-                    mDownloadedPostsFeed.postValue(postsResponse.getPostsFeed());
+                    if (postsResponse.getPostsFeed().length != 0) {
+                        // Will eventually do something with the downloaded data
+                        mDownloadedPostsFeed.postValue(postsResponse.getPostsFeed());
+                    }
                 }
             } catch (Exception e) {
                 Log.wtf(TAG, "fetchFeed: ", e.fillInStackTrace());
