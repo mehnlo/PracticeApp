@@ -4,13 +4,13 @@ This repository is a project for the class, *Software Architecture for Enterpris
 ([Unex](https://www.unex.es)).
 
 ## Table of content
-1. [Introduction](#Introduction)
-1. [Features](#Features)
+1. [Introduction](#introduction)
+1. [Features](#features)
 1. [How does it look like?](#how-does-it-look-like)
-    1. [App](#App)
-    1. [Graph](#Graph)
-1. [Author](#Author)
-1. [Credits](#Credits)
+    1. [App](#app)
+    1. [Graph](#graph)
+1. [Author](#author)
+1. [Credits](#credits)
 
 ## Introduction
 *Pseudogram* is an Android app that try to copy the funcionality of Instagram, using [Firebase](https://firebase.google.com/) 
@@ -28,11 +28,10 @@ Inside of functionalities that *Pseudogram* has, we encounter the next ones:
   - And **much more**.
 ## How does it look like?
 ### App
-![profile](https://user-images.githubusercontent.com/4200145/57971591-5e8c1100-7990-11e9-884b-e0f7e39b6c3c.gif)
-![edit profile](https://user-images.githubusercontent.com/4200145/57971581-49af7d80-7990-11e9-8f7f-7e279f7dd65d.gif)
+![demo](https://user-images.githubusercontent.com/4200145/58016360-b4ca9280-7afd-11e9-8208-b006884dd45f.gif)
 
 ### Graph
-![Graph](https://user-images.githubusercontent.com/4200145/57971807-25a16b80-7993-11e9-91b7-6f91af050e07.PNG)
+![graph](https://user-images.githubusercontent.com/4200145/58016461-f8250100-7afd-11e9-97a4-5afc551aced9.png)
 
 ## Author
 Alberto Garcia de Paredes Cidoncha
