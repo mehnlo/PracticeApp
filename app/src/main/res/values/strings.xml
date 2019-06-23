@@ -101,4 +101,6 @@
     <string name="delete_dialog_message">Are you sure you want to delete this post?</string>
     <string name="delete_dialog_confirm">Yes, delete it</string>
     <string name="no" translatable="false">No</string>
+    <string name="delete_account_dialog_message">Are you sure you want to delete this account?</string>
+    <string name="delete_account_failed">Delete account failed</string>
 </resources>

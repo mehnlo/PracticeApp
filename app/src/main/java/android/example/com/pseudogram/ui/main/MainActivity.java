@@ -317,30 +317,53 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         }
     }
 
-    public void deleteAccount(View view) { showToast(R.string.todo_implement); }
+    public void deleteAccount(View view) {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.delete_account_dialog_message)
+                .setPositiveButton(R.string.delete_dialog_confirm, (dialogInterface, i) -> deleteAccount())
+                .setNegativeButton(R.string.no, null)
+                .show();
+    }
+
+    private void deleteAccount() {
+        AuthUI.getInstance()
+                .delete(this)
+                .addOnCompleteListener(this, (task) -> {
+                    if (task.isSuccessful()) {
+                        navController.navigate(R.id.action_editProfileFragment_to_authActivity);
+                        finish();
+                    } else {
+                        showSnackBar(R.string.delete_account_failed);
+                    }
+                });
+    }
 
     @Override public boolean onMenuItemClick(MenuItem item) {
         if (item.getItemId() == R.id.action_remove) {
             Log.d(TAG, "onMenuItemClick: action_remove " + model.getPostSelected().getValue().getId());
             new AlertDialog.Builder(this)
                     .setMessage(R.string.delete_dialog_message)
-                    .setPositiveButton(R.string.delete_dialog_confirm, (dialogInterface, i) -> model.deletePost(model.getPostSelected().getValue().getId())
-                            .observe(this, task -> {
-                                if (task != null) {
-                                    task.addOnCompleteListener(taskComplete -> {
-                                        if (task.isSuccessful()) {
-                                            showSnackBar(R.string.post_removed);
-                                            navController.navigateUp();
-                                        } else {
-                                            Log.w(TAG, "Error removing post", task.getException());
-                                        }
-                                    });
-                                }
-                    }))
+                    .setPositiveButton(R.string.delete_dialog_confirm, (dialogInterface, i) -> deletePost())
                     .setNegativeButton(R.string.no, null)
                     .show();
         }
         return false;
+    }
+
+    private void deletePost() {
+        model.deletePost(model.getPostSelected().getValue().getId())
+        .observe(this, task -> {
+            if (task != null) {
+                task.addOnCompleteListener(taskComplete -> {
+                    if (task.isSuccessful()) {
+                        showSnackBar(R.string.post_removed);
+                        navController.navigateUp();
+                    } else {
+                        Log.w(TAG, "Error removing post", task.getException());
+                    }
+                });
+            }
+        });
     }
 
     public void showSnackBar(@StringRes int msg) {

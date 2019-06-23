@@ -252,3 +252,46 @@ exports.loadFeed = functions.region(REGION).https.onCall((data, context) => {
 
 });
 
+/**
+ * When a user is delete from auth this function triggers, then remove all info associated with that user
+ * in database and storage
+ * Uses cases:
+ *      (1) When there is nothing to delete in storage or firestore,
+ *          the location of bucket users/${email} doesn't exist or
+ *          the documentReference doesn't exist.
+ *      (2) When there is something to delete in storage or firestore.
+ * @type {CloudFunction<UserRecord>}
+ */
+exports.removeUser = functions.region(REGION).auth.user()
+    .onDelete(user => {
+        // Get the email of the deleted user.
+        // Test(passed): expected email john@doe.com
+        const email = user.email;
+        const db = admin.firestore();
+        const storage = admin.storage();
+        const bucket = storage.bucket();
+        // Test(passed): declaration
+        const batch = db.batch();
+        const userRef = db.doc(`users/${email}`);
+        const postsRef = db.doc(`posts/${email}`);
+        const countersRef = db.doc(`counters/${email}`);
+        const followingRef = db.doc(`following/${email}`);
+        const followersRef = db.doc(`followers/${email}`);
+
+        batch.delete(userRef);
+        batch.delete(postsRef);
+        batch.delete(countersRef);
+        batch.delete(followingRef);
+        batch.delete(followersRef);
+
+            // Test(passed): delete the location path users/${email}
+            // Test: delete the location path posts/${email}
+            // Test(passed): delete the location path counters/${email}
+            // Test(passed): delete the location path following/${email}
+            // Test(passed): delete the location path followers/${email}
+            // Test(passed): remove all files in bucketRef
+        return Promise.all(
+            batch.commit(),
+            bucket.deleteFiles({ prefix: `users/${email}` })
+        );
+    });
